@@ -4,7 +4,7 @@
     "module": "CommonJS",
     "moduleResolution": "Node",
 
-    "rootDir": "src",
+    "rootDir": "./",
     "outDir": "dist",
 
     "strict": true,
@@ -15,7 +15,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@templates/*": ["src/templates/*"]
+      "@generated/*": ["generated/*"],
     },
 
     "typeRoots": ["src/@types", "node_modules/@types"],
@@ -25,6 +25,6 @@
     "sourceMap": true
   },
 
-  "include": ["src"],
+  "include": ["src", "generated"],
   "exclude": ["node_modules", "dist"]
 }

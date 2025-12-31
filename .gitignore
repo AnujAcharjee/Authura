@@ -5,3 +5,5 @@ logs/
 *.log
 coverage/
 .vscode
+/generated/prisma
+

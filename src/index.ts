@@ -1,6 +1,7 @@
 import app from './app';
 import { ENV } from '@/config/env';
 import { logger } from '@/config/logger';
+import prisma from "@/config/database";
 
 const server = app.listen(ENV.PORT, () => {
   logger.info(`Server running on port ${ENV.PORT} in ${ENV.NODE_ENV} mode`);
@@ -22,9 +23,15 @@ const shutdown = async (signal: string) => {
   server.close(async () => {
     logger.info('HTTP server closed');
     
-    //
+    try {
+      await prisma.$disconnect();
+      logger.info("Database connections closed");
 
-    process.exit(0);
+      process.exit(0);
+    } catch (err) {
+      logger.error("Error during shutdown:", err);
+      process.exit(1);
+    }
   });
 
   // Force shutdown after 30 seconds
