@@ -11,8 +11,11 @@ const prisma = new PrismaClient({
   log: ENV.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : [],
 });
 
-// Soft shutdown handler
+let isShuttingDown = false;
 const handleShutdown = async () => {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+
   console.log('Shutting down database connection');
   await prisma.$disconnect();
 };

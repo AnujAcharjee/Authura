@@ -15,7 +15,10 @@
     "start": "node dist/index.js",
     "dev": "npx nodemon",
     "seed:dev": "tsx --tsconfig tsconfig.scripts.json scripts/dev.seed.ts",
-    "seed:prod": "tsx --tsconfig tsconfig.scripts.json scripts/prod.seed.ts"
+    "seed:prod": "tsx --tsconfig tsconfig.scripts.json scripts/prod.seed.ts",
+    "docker:dev": "docker compose -f docker-compose.dev.yml up -d",
+    "docker:dev:build": "docker compose -f docker-compose.dev.yml up --build",
+    "docker:dev:down": "docker compose -f docker-compose.dev.yml down -v"
   },
   "_moduleAliases": {
     "@": "dist/src"
@@ -44,6 +47,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.16.3",
     "uuid": "^13.0.0",

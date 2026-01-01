@@ -16,6 +16,15 @@ const envSchema = z.object({
   NEON_PG_DATABASE_URL: z.string(),
   SERVER_URL: z.url(),
   FRONTEND_URL: z.url(),
+  REDIS_HOST: z.string(),
+  REDIS_USERNAME: z.string(),
+  REDIS_PORT: z
+    .string()
+    .transform(Number)
+    .refine((n) => n >= 1024 && n <= 65535, {
+      message: 'Port must be between 1024 and 65535',
+    }),
+  REDIS_PASSWORD: z.string(),
 });
 
 export const ENV = envSchema.parse(process.env);
