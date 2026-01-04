@@ -1,4 +1,4 @@
-import prisma from '@/config/database';
+import prisma, { UserRole } from '@/config/database';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import redis from '@/config/redis';
@@ -14,13 +14,15 @@ import {
   SigninInput,
   SigninResult,
 } from '@/@types/auth.types';
-import { UserRole } from '@generated/prisma/enums';
+import { emailService } from '@/services/email.service';
 
 export class AuthService {
   private verificationTokenExpiry: number;
+  // private emailService: EmailService;
 
   constructor() {
     this.verificationTokenExpiry = 24 * 60 * 60;
+    // this.emailService = new EmailService();
   }
 
   // Redis keys
@@ -78,7 +80,8 @@ export class AuthService {
 
     await this.setVerificationTokenInRedis(hashedVerificationToken, user.id);
 
-    // TODO: send email verification email
+    // Send email verification email
+    emailService.sendVerificationEmail(email, name, verificationToken);
 
     return {
       id: user.id,
@@ -122,14 +125,13 @@ export class AuthService {
   async resendVerificationEmail({
     email,
   }: ResendVerificationEmailInput): Promise<ResendVerificationEmailResult> {
-    
     const genericResponse = {
       message: 'If an account exists, a verification email has been sent',
     };
 
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, emailVerifiedAt: true },
+      select: { id: true, emailVerifiedAt: true, email: true, name: true },
     });
 
     if (!user || user.emailVerifiedAt) {
@@ -149,7 +151,8 @@ export class AuthService {
 
     await this.setVerificationTokenInRedis(hashedVerificationToken, user.id);
 
-    // TODO: send email verification email
+    // Send email verification email
+    emailService.sendVerificationEmail(user.email, user.name, verificationToken);
 
     return genericResponse;
   }

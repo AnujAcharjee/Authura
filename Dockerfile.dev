@@ -1,0 +1,33 @@
+FROM node:24-alpine
+
+# Add non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Install dev only necessary tools
+RUN apk add --no-cache netcat-openbsd wget
+
+WORKDIR /app
+
+# Create directories and set permissions
+RUN mkdir -p node_modules dist && \
+    chown -R appuser:appgroup /app
+
+COPY package*.json ./
+COPY prisma ./prisma/
+COPY tsconfig*.json ./
+COPY scripts ./scripts/
+COPY nodemon.json ./
+
+# Set permissions
+RUN chown -R appuser:appgroup /app
+
+# Switch to non-root user
+USER appuser
+
+# Install ALL dependencies (including devDependencies)
+RUN npm install
+
+EXPOSE 8080
+
+CMD ["npx", "nodemon"] 
+

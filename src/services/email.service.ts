@@ -1,0 +1,165 @@
+import nodemailer from 'nodemailer';
+import { ENV } from '@/config/env';
+import { logger } from '@/config/logger';
+import { getEmailVerificationTemplate, getPasswordResetEmailTemplate } from '@/templates/email';
+
+class EmailService {
+  private transporter!: nodemailer.Transporter;
+  private readonly fromAddress: string;
+  private initialized = false;
+
+  constructor() {
+    this.fromAddress = ENV.SMTP_FROM || 'noreply@example.com';
+
+    // logger.info('Using SMTP configuration', {
+    //   context: 'EmailService.constructor',
+    //   host: ENV.SMTP_HOST,
+    // });
+
+    // Add email template precompilation
+    this.precompileTemplates();
+
+    // Add connection testing
+    // this.testConnection();
+  }
+
+  async init() {
+    if (this.initialized) return;
+
+    if (ENV.NODE_ENV === 'development') {
+      await this.initEthereal();
+    } else {
+      await this.initProductionSMTP();
+    }
+
+    this.initialized = true;
+  }
+
+  // -----------------------
+  // DEV: Ethereal
+  // -----------------------
+  private async initEthereal() {
+    const testAccount = await nodemailer.createTestAccount();
+
+    this.transporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass,
+      },
+    });
+
+    logger.info('Using Ethereal SMTP (development)', {
+      context: 'EmailService.initEthereal',
+      user: testAccount.user,
+    });
+  }
+
+  // -----------------------
+  // PROD: Real SMTP
+  // -----------------------
+  private async initProductionSMTP() {
+    this.transporter = nodemailer.createTransport({
+      host: ENV.SMTP_HOST,
+      port: ENV.SMTP_PORT,
+      secure: ENV.SMTP_PORT === 465,
+      auth: {
+        user: ENV.SMTP_USER,
+        pass: ENV.SMTP_PASSWORD,
+      },
+      tls: {
+        rejectUnauthorized: true,
+      },
+    });
+
+    try {
+      await this.transporter.verify();
+      logger.info('SMTP connection verified', {
+        context: 'EmailService.initProductionSMTP',
+        host: ENV.SMTP_HOST,
+      });
+    } catch (error) {
+      logger.error('SMTP verification failed', {
+        context: 'EmailService.initProductionSMTP',
+        error,
+      });
+      throw error;
+    }
+  }
+
+  private async testConnection() {
+    try {
+      await this.transporter.verify();
+      logger.info('SMTP connection verified');
+    } catch (error) {
+      logger.error('SMTP connection failed', { error });
+    }
+  }
+
+  private precompileTemplates() {
+    try {
+      getEmailVerificationTemplate('test', 'test'); // Pre-compile by running once
+      getPasswordResetEmailTemplate('test', 'test'); // Pre-compile by running once
+      logger.info('Email templates precompiled successfully');
+    } catch (error) {
+      logger.error('Failed to precompile email templates', { error });
+    }
+  }
+
+  async sendVerificationEmail(to: string, name: string, verificationToken: string): Promise<void> {
+    // TODO: Change this to frontend URL -> frontend extracts the token and make api call on behalf of user
+    const verificationUrl = `${ENV.FRONTEND_URL}/api/auth/verify-email/${verificationToken}`;
+
+    try {
+      const info = await this.transporter.sendMail({
+        from: this.fromAddress,
+        to,
+        subject: 'Verify your email address',
+        html: getEmailVerificationTemplate(name, verificationUrl),
+      });
+
+      logger.info('Verification email sent', {
+        context: 'EmailService.sendVerificationEmail',
+        to,
+        messageId: info.messageId,
+        previewUrl: ENV.NODE_ENV === 'development' ? nodemailer.getTestMessageUrl(info) : undefined,
+      });
+    } catch (error) {
+      logger.error('Failed to send verification email', {
+        context: 'EmailService.sendVerificationEmail',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        to,
+      });
+      throw error;
+    }
+  }
+
+  async sendPasswordResetEmail(to: string, name: string, resetToken: string): Promise<void> {
+    const resetUrl = `${ENV.FRONTEND_URL}/reset-password/${resetToken}`; // TODO: Change this to frontend URL
+
+    try {
+      const info = await this.transporter.sendMail({
+        from: this.fromAddress,
+        to,
+        subject: 'Reset Your Password',
+        html: getPasswordResetEmailTemplate(name, resetUrl),
+      });
+
+      logger.info('Password reset email sent', {
+        context: 'EmailService.sendPasswordResetEmail',
+        to,
+        messageId: info.messageId,
+      });
+    } catch (error) {
+      logger.error('Failed to send password reset email', {
+        context: 'EmailService.sendPasswordResetEmail',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        to,
+      });
+      throw error;
+    }
+  }
+}
+
+export const emailService = new EmailService();

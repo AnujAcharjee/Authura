@@ -1,17 +1,28 @@
-import express, { Request, Response } from 'express';
+import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import { ENV } from '@/config/env';
 import { errorMiddleware } from '@/middlewares/errorMiddleware';
 import { notFoundHandler } from '@/middlewares/notFound';
 import { loggingMiddleware } from '@/middlewares/loggingMiddleware';
+import { setupSecurityHeaders } from '@/middlewares/securityHeaders';
 import { requestId } from '@/middlewares/requestId';
+import { authLimiter, apiLimiter } from '@/middlewares/rateLimiter';
+import authRoutes from '@/routes/auth.routes';
 
 const app = express();
+
+// Trust the first proxy in front of the app (e.g. Nginx, load balancer, Docker)
+// This is required so Express correctly reads the real client IP from
+// X-Forwarded-For headers, which is critical for rate limiting, logging,
+// and security controls. Do NOT enable this unless the app is actually
+// behind a trusted reverse proxy.
+app.set('trust proxy', 1);
 
 // middlewares
 const setupMiddleware = (app: express.Application) => {
   // Security
   app.use(requestId);
+  setupSecurityHeaders(app as Express);
   app.use(cors({ origin: ENV.FRONTEND_URL, credentials: true }));
 
   // Performance
@@ -19,6 +30,10 @@ const setupMiddleware = (app: express.Application) => {
 
   // Monitoring
   app.use(loggingMiddleware);
+
+  // Rate Limiting
+  app.use('/api/auth', authLimiter);
+  app.use('/api', apiLimiter);
 };
 
 setupMiddleware(app);
@@ -37,6 +52,8 @@ app.get('/health', (req: Request, res: Response) => {
     memoryUsage: process.memoryUsage(),
   });
 });
+
+app.use('/api/auth', authRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

@@ -1,6 +1,6 @@
 import { ENV } from '@/config/env';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '@generated/prisma/client';
+import { PrismaClient, UserRole, CredentialType, TokenType } from '../../generated/prisma/client';
 
 const connectionString = `${ENV.NEON_PG_DATABASE_URL}`;
 
@@ -24,3 +24,5 @@ process.on('SIGTERM', handleShutdown);
 process.on('SIGINT', handleShutdown);
 
 export default prisma;
+
+export { UserRole, CredentialType, TokenType };
