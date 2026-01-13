@@ -6,5 +6,5 @@ import { ApiResponse } from '../utils/apiResponse';
  * This should be mounted after all other routes
  */
 export const notFoundHandler = (req: Request, res: Response) => {
-  ApiResponse.error(res, '🔍 Ooops! Looks like you are lost. 🗺️', 404);
+  ApiResponse.error(res, '🔍 Oops! Looks like you are lost. 🗺️', 404);
 }; 

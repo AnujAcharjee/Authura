@@ -8,37 +8,45 @@ datasource db {
 }
 
 model User {
-  id       String  @id @default(uuid())
-  name     String  @db.VarChar(99)
-  email    String  @unique @db.VarChar(99)
-  password String? @db.VarChar(100)
+  id String @id @default(uuid())
 
-  role UserRole @default(USER)
-
+  name   String   @db.VarChar(99)
+  email  String   @unique @db.VarChar(99)
+  role   UserRole @default(USER)
   avatar String?
 
-  emailVerifiedAt DateTime?
-
   // Security
-  mfaEnabled       Boolean   @default(false) //multi factor authentication(mfa)
-  mfaSecret        String?
-  failedLoginCount Int       @default(0)
-  lockedUntil      DateTime?
-
-  // Activity
-  lastLoginAt DateTime?
-  lastLoginIp String?
+  isEmailVerified Boolean      @default(false)
+  emailVerifiedAt DateTime?
+  provider        AuthProvider @default(DEFAULT)
+  password        String?      @db.VarChar(100)
+  mfaEnabled      Boolean      @default(false) //multi factor authentication(mfa)
+  isLocked        Boolean      @default(false)
+  lockedUntil     DateTime?
 
   // Lifecycle
-  isActive Boolean @default(true)
-  deletedAt DateTime?
+  isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   // Relations
-  credential           Credential[]
-  sessions           Session[]
-  verificationTokens VerificationToken[]
+  identitySession IdentitySession[]
+}
+
+model IdentitySession {
+  token  String @id @db.Char(64)
+  userId String
+
+  issuedAt   DateTime  @default(now())
+  lastUsedAt DateTime?
+  expiresAt  DateTime
+  revoked    Boolean   @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revoked, expiresAt])
+  @@index([expiresAt])
 }
 
 enum UserRole {
@@ -46,54 +54,8 @@ enum UserRole {
   USER
 }
 
-model Credential {
-  id        String   @id @default(uuid())
-  userId    String
-
-  type      CredentialType
-  provider  String?   // google, github (null for password)
-  subject   String?   // OAuth sub
-  secret    String?   // password hash
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, subject])
-}
-
-enum CredentialType {
-  PASSWORD
-  OAUTH
-}
-
-model Session {
-  id        String  @id @default(uuid())
-  token     String  @unique
-  ip        String?
-  userAgent String?
-
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String
-}
-
-model VerificationToken {
-  id        String    @id @default(uuid())
-  type      TokenType
-  token     String    @unique
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime  @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-}
-
-enum TokenType {
-  EMAIL_VERIFY
-  PASSWORD_RESET
+enum AuthProvider {
+  DEFAULT
+  GOOGLE
+  GITHUB
 }

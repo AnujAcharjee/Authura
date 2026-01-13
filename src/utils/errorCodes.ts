@@ -8,6 +8,10 @@ export enum ErrorCode {
   // Authorization Errors (2xxx)
   FORBIDDEN = "ERR_2001",
   INSUFFICIENT_PERMISSIONS = "ERR_2002",
+  ACCOUNT_LOCKED= "ERR_2003",
+  EMAIL_NOT_VERIFIED= "ERR_2004",
+  ASESS_EXPIRED="ERR_2004",
+  ISESS_EXPIRED="ERR_2005",
 
   // Validation Errors (3xxx)
   INVALID_INPUT = "ERR_3001",

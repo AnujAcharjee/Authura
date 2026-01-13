@@ -1,11 +1,12 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { ENV } from '@/config/env';
 import { errorMiddleware } from '@/middlewares/errorMiddleware';
 import { notFoundHandler } from '@/middlewares/notFound';
 import { loggingMiddleware } from '@/middlewares/loggingMiddleware';
 import { setupSecurityHeaders } from '@/middlewares/securityHeaders';
-import { requestId } from '@/middlewares/requestId';
+import { ensureRequestId } from '@/middlewares/requestId';
 import { authLimiter, apiLimiter } from '@/middlewares/rateLimiter';
 import authRoutes from '@/routes/auth.routes';
 
@@ -21,12 +22,13 @@ app.set('trust proxy', 1);
 // middlewares
 const setupMiddleware = (app: express.Application) => {
   // Security
-  app.use(requestId);
   setupSecurityHeaders(app as Express);
+  app.use(ensureRequestId);
   app.use(cors({ origin: ENV.FRONTEND_URL, credentials: true }));
 
   // Performance
   app.use(express.json({ limit: '10kb' }));
+  app.use(cookieParser(ENV.COOKIE_SECRET));
 
   // Monitoring
   app.use(loggingMiddleware);

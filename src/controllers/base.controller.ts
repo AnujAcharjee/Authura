@@ -10,7 +10,7 @@ export abstract class BaseController {
   ): Promise<void> {
     try {
       const result = await action();
-      ApiResponse.success(res, result);
+      ApiResponse.success(res, result.data, result.message);
     } catch (error) {
       next(error);
     }

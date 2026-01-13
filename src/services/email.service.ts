@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 import { ENV } from '@/config/env';
 import { logger } from '@/config/logger';
-import { getEmailVerificationTemplate, getPasswordResetEmailTemplate } from '@/templates/email';
+import { getEmailVerificationTemplate, getPasswordResetEmailTemplate, getSignInVerificationTemplate } from '@/templates/email';
 
 class EmailService {
   private transporter!: nodemailer.Transporter;
@@ -99,8 +99,11 @@ class EmailService {
 
   private precompileTemplates() {
     try {
-      getEmailVerificationTemplate('test', 'test'); // Pre-compile by running once
-      getPasswordResetEmailTemplate('test', 'test'); // Pre-compile by running once
+      // Pre-compile by running once
+      getEmailVerificationTemplate('test', 'test'); 
+      getPasswordResetEmailTemplate('test', 'test');
+      getSignInVerificationTemplate('test', 'test');
+
       logger.info('Email templates precompiled successfully');
     } catch (error) {
       logger.error('Failed to precompile email templates', { error });
@@ -128,6 +131,33 @@ class EmailService {
     } catch (error) {
       logger.error('Failed to send verification email', {
         context: 'EmailService.sendVerificationEmail',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        to,
+      });
+      throw error;
+    }
+  }
+
+  async sendSignInVerifyEmail(to: string, name: string, verificationToken: string): Promise<void> {
+    const verificationUrl = `${ENV.FRONTEND_URL}/api/auth/verify-email/${verificationToken}`;
+
+    try {
+      const info = await this.transporter.sendMail({
+        from: this.fromAddress,
+        to,
+        subject: 'Verify your email address',
+        html: getSignInVerificationTemplate(name, verificationUrl),
+      });
+
+      logger.info('Sign-in verification email sent', {
+        context: 'EmailService.sendSignInVerifyEmail',
+        to,
+        messageId: info.messageId,
+        previewUrl: ENV.NODE_ENV === 'development' ? nodemailer.getTestMessageUrl(info) : undefined,
+      });
+    } catch (error) {
+      logger.error('Failed to send sign-in verification email', {
+        context: 'EmailService.sendSignInVerifyEmail',
         error: error instanceof Error ? error.message : 'Unknown error',
         to,
       });

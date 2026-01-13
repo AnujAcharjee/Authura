@@ -1,4 +1,6 @@
-export interface SignupInput {
+import { UserRole } from '@/config/database';
+
+export interface SignupParams {
   name: string;
   email: string;
   password: string;
@@ -8,37 +10,27 @@ export interface SignupResult {
   id: string;
   email: string;
   name: string;
-  role: string;
+  role: UserRole;
   createdAt: Date;
 }
 
-export interface VerifyEmailInput {
-  token: string;
-}
-
 export interface VerifyEmailResult {
-  message: string;
+  identitySessionId: string;
+  activeSessionId: string;
 }
 
-export interface ResendVerificationEmailInput {
+export interface SigninParams {
   email: string;
-}
-
-export interface ResendVerificationEmailResult {
-  message: string;
-}
-
-export interface SigninInput {
-  email: String;
-  password: String;
+  password: string;
 }
 
 export interface SigninResult {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: string;
-    email: string;
-    role: string;
-  };
+  mfaEnabled: boolean;
+  identitySessionId: string | undefined;
+  activeSessionId: string | undefined;
+}
+
+export interface VerifySignInResult {
+  identitySessionId: string;
+  activeSessionId: string;
 }
