@@ -239,7 +239,9 @@ export class AuthService {
     // increase failed login count
     // if exceed limit lock  user
 
-    let identitySessionId, activeSessionId;
+    let identitySessionId: string | null = null;
+    let activeSessionId: string | null = null;
+
     const failureCountKey = this.signinFailCount_RK(user.id);
 
     if (!isPasswordValid) {
@@ -293,6 +295,15 @@ export class AuthService {
       // create session
       identitySessionId = await sessionService.createIdentitySession(user.id);
       activeSessionId = await sessionService.createActiveSession(user.id, user.role);
+    }
+
+    if (!identitySessionId || !activeSessionId) {
+      throw new AppError(
+        'AuthService:signin: identity & active session ids are null',
+        500,
+        ErrorCode.INTERNAL_SERVER_ERROR,
+        false,
+      );
     }
 
     return {
@@ -353,7 +364,7 @@ export class AuthService {
   // REFRESH ACTIVE SESSION
   async refreshActiveSession(isid: string): Promise<string> {
     if (!isid) {
-      throw new AppError('Identity session token is missing. Sign in again.', 401, ErrorCode.ISESS_EXPIRED);
+      throw new AppError('Identity session token is missing. Sign in again.', 401, ErrorCode.IDENTITY_SESSION_EXPIRED);
     }
 
     const isidHash = sha256(isid);

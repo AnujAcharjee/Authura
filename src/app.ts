@@ -9,6 +9,7 @@ import { setupSecurityHeaders } from '@/middlewares/securityHeaders';
 import { ensureRequestId } from '@/middlewares/requestId';
 import { authLimiter, apiLimiter } from '@/middlewares/rateLimiter';
 import authRoutes from '@/routes/auth.routes';
+import oauth2Routes from '@/routes/OAuth2.routes';
 
 const app = express();
 
@@ -17,7 +18,7 @@ const app = express();
 // X-Forwarded-For headers, which is critical for rate limiting, logging,
 // and security controls. Do NOT enable this unless the app is actually
 // behind a trusted reverse proxy.
-app.set('trust proxy', 1);
+app.set('trust proxy', true);
 
 // middlewares
 const setupMiddleware = (app: express.Application) => {
@@ -27,6 +28,7 @@ const setupMiddleware = (app: express.Application) => {
   app.use(cors({ origin: ENV.FRONTEND_URL, credentials: true }));
 
   // Performance
+  app.use(express.urlencoded({ extended: true }));
   app.use(express.json({ limit: '10kb' }));
   app.use(cookieParser(ENV.COOKIE_SECRET));
 
@@ -34,8 +36,8 @@ const setupMiddleware = (app: express.Application) => {
   app.use(loggingMiddleware);
 
   // Rate Limiting
-  app.use('/api/auth', authLimiter);
-  app.use('/api', apiLimiter);
+  // app.use('/api/auth', authLimiter);
+  // app.use('/api', apiLimiter);
 };
 
 setupMiddleware(app);
@@ -56,6 +58,7 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/OAuth2', oauth2Routes);
 
 // 404 handler
 app.use(notFoundHandler);

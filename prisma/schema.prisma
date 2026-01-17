@@ -49,6 +49,30 @@ model IdentitySession {
   @@index([expiresAt])
 }
 
+model OAuthClient {
+  id     String @id @default(uuid())
+  domain String @db.VarChar(255)
+
+  // OAuth identifiers
+  clientSecretHash String? @db.VarChar(255)
+
+  // OAuth behavior
+  clientType  OAuthClientType @default(CONFIDENTIAL)
+  enforcePKCE Boolean         @default(true)
+
+  // Redirect URIs
+  redirectURIs String[]
+
+  // Status & lifecycle
+  isActive  Boolean   @default(true)
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([domain])
+}
+
 enum UserRole {
   ADMIN
   USER
@@ -58,4 +82,9 @@ enum AuthProvider {
   DEFAULT
   GOOGLE
   GITHUB
+}
+
+enum OAuthClientType {
+  PUBLIC
+  CONFIDENTIAL
 }

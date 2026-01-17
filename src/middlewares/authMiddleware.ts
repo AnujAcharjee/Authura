@@ -5,8 +5,6 @@ import { COOKIE_NAMES } from '@/utils/cookies';
 import { sha256 } from '@/utils/crypto';
 import { logger } from '@/config/logger';
 import redis from '@/config/redis';
-import { sessionService } from '@/services/session.service';
-import prisma from '@/config/database';
 
 const activeSession_RK = (sid: string) => `session:active:${sid}`;
 
@@ -15,7 +13,7 @@ export const ensureAuth = async (req: Request, res: Response, next: NextFunction
     const asid = req.signedCookies[COOKIE_NAMES.ACTIVE_SESSION];
 
     if (!asid) {
-      throw new AppError('Active session expired', 401, ErrorCode.ASESS_EXPIRED);
+      throw new AppError('Active session expired', 401, ErrorCode.ACCESS_SESSION_EXPIRED);
     }
 
     const cached = await redis.get(activeSession_RK(sha256(asid)));
@@ -60,3 +58,5 @@ export const ensureRole = (roles: string[]) => {
     }
   };
 };
+
+export const ensureClientAuth = () => {};

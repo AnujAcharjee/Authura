@@ -1,5 +1,5 @@
 import { ENV } from '@/config/env';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -10,10 +10,9 @@ export const authLimiter = rateLimit({
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  keyGenerator: (req) => {
-    return req.ip || (req.headers['x-forwarded-for'] as string);
-  },
   skipSuccessfulRequests: true, // Only count failed attempts
+
+  keyGenerator: (req) => ipKeyGenerator(req as any),
 });
 
 export const apiLimiter = rateLimit({

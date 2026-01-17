@@ -3,7 +3,6 @@ import { AuthService } from '@/services/auth.service';
 import { BaseController } from '@/controllers/base.controller';
 import { COOKIE_NAMES } from '@/utils/cookies';
 import { ENV } from '@/config/env';
-import { email } from 'zod';
 
 export class AuthController extends BaseController {
   constructor(private authService: AuthService) {

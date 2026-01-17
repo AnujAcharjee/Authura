@@ -14,6 +14,7 @@ services:
       - ./nodemon.json:/app/nodemon.json:delegated
       - api_node_modules:/app/node_modules
       - api_dist:/app/dist
+      - jwt_keys:/keys:ro  
       
     ports:
       - "8080:8080"
@@ -24,6 +25,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      keygen:
+        condition: service_completed_successfully
 
     command: >
       sh -c "
@@ -41,6 +44,23 @@ services:
     #   timeout: 5s
     #   retries: 3
     restart: unless-stopped
+
+  keygen:
+    image: alpine:3.19
+    container_name: authura-jwt-keygen
+    restart: "no" 
+    volumes:
+      - jwt_keys:/keys
+    command: >
+      sh -c "
+        if [ ! -f /keys/private.pem ]; then
+          apk add --no-cache openssl &&
+          openssl genrsa -out /keys/private.pem 2048 &&
+          openssl rsa -in /keys/private.pem -pubout -out /keys/public.pem &&
+          chmod 644 /keys/private.pem &&  
+          chmod 644 /keys/public.pem       
+        fi
+      "
 
   redis:
     image: redis:8.4.0
@@ -68,6 +88,7 @@ volumes:
     driver: local
   api_dist:
     driver: local
+  jwt_keys:
 
 networks:
   authura-network:
