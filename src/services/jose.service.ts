@@ -117,6 +117,7 @@ class JoseService {
     };
   }
 
+  // TODO: Rotate keys in a scheduled manner
   // --------------- Rotate signing keys (safe) ---------------
   async rotateSigningKey() {
     const newKey = await this.generateSigningKey();

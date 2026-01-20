@@ -16,6 +16,8 @@ const router = Router();
 const service = new OAuth2Service();
 const controller = new OAuth2Controller(service);
 
+// TODO: implement isolated router for every client
+
 // CLIENTS
 router.post('/clients/register', validateRequest(registerClientSchema), controller.registerClient);
 router.post('/clients/update', validateRequest(updateRedirectSchema), controller.updateRedirects);
@@ -24,9 +26,7 @@ router.post('/clients/update', validateRequest(updateRedirectSchema), controller
 router.get('/.well-known/jwks.json', validateRequest(jwksSchema), controller.getJwks);
 
 // OIDC
-router.get('/authorize', 
-  // ensureAuth,
-   validateRequest(authorizeClientSchema), controller.authorizeClient);
+router.get('/authorize', ensureAuth, validateRequest(authorizeClientSchema), controller.authorizeClient);
 router.post('/token', validateRequest(issueTokensSchema), controller.issueTokens);
 
 export default router;
