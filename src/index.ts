@@ -4,6 +4,7 @@ import { logger } from '@/config/logger';
 import prisma from '@/config/database';
 import { emailService } from '@/services/email.service';
 import { Server } from 'node:http';
+import { joseService } from '@/services/jose.service';
 
 let server: Server | undefined;
 let isShuttingDown = false;
@@ -11,6 +12,8 @@ let isShuttingDown = false;
 // Init server
 async function init() {
   await emailService.init();
+
+  await joseService.initJwks();
 
   server = app.listen(ENV.PORT, () => {
     logger.info(`Server running on port ${ENV.PORT} in ${ENV.NODE_ENV} mode`);

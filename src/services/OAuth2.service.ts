@@ -1,11 +1,10 @@
 import prisma from '@/config/database';
 import redis from '@/config/redis';
 import bcrypt from 'bcrypt';
-import fs from 'fs';
-import jwt from 'jsonwebtoken';
 import { AppError } from '@/utils/appError';
 import { ErrorCode } from '@/utils/errorCodes';
-import { randomToken, sha256, verifyPKCE, createPublicJWK } from '@/utils/crypto';
+import { randomToken, sha256, verifyPKCE } from '@/utils/crypto';
+import { joseService } from '@/services/jose.service';
 import { ENV } from '@/config/env';
 import {
   RegisterClientResult,
@@ -26,14 +25,12 @@ enum Scope {
 
 export class OAuth2Service {
   private authCodeExpiry = ENV.NODE_ENV === 'production' ? ENV.AUTH_CODE_EX : 300;
-  private accessTokenExpiry = ENV.NODE_ENV === 'production' ? ENV.ACCESS_TOKEN_EX : 600;
-  private jwtPrivateKey = fs.readFileSync(process.env.JWT_PRIVATE_KEY_PATH!, 'utf8');
-  private jwtPublicKey = fs.readFileSync(process.env.JWT_PUBLIC_KEY_PATH!, 'utf8');
-  private keyId = 'authura-key-1';
+  private authTokensExpiry = ENV.NODE_ENV === 'production' ? ENV.AUTH_TOKENS_EX : '10m';
 
   private authCode_RK = (hashedToken: string): string => `OAuth:authCode:${hashedToken}`;
+  private getClientDomain = (slug: string): string => `https://${slug}.authura.com`;
 
-  private isValidDomain(slug: string): boolean {
+  private isValidClientSlug(slug: string): boolean {
     if (!slug) return false;
 
     const normalized = slug.trim().toLowerCase();
@@ -108,22 +105,23 @@ export class OAuth2Service {
   }
 
   // -------- REGISTER CLIENT --------
-  async registerClient({ domain, clientType }: RegisterClientParams): Promise<RegisterClientResult> {
-    if (!domain) {
+  async registerClient({ slug, clientType }: RegisterClientParams): Promise<RegisterClientResult> {
+    if (!slug) {
       throw new AppError('Missing required field', 400, ErrorCode.MISSING_REQUIRED_FIELD, false);
     }
 
-    // Validate domain
-    if (!this.isValidDomain(domain)) {
+    // Validate
+    if (!this.isValidClientSlug(slug)) {
       throw new AppError('Invalid domain', 400, ErrorCode.INVALID_DOMAIN);
     }
 
     const clientSecret = randomToken(48);
     const clientSecretHash = await bcrypt.hash(clientSecret, 12);
+    const clientDomain = this.getClientDomain(slug);
 
     const client = await prisma.oAuthClient.create({
       data: {
-        domain,
+        domain: clientDomain,
         clientSecretHash,
         clientType,
         enforcePKCE: true,
@@ -186,19 +184,8 @@ export class OAuth2Service {
   }
 
   // -------- GET JWKS --------
-  getJwks() {
-    const jwk = createPublicJWK(this.jwtPublicKey);
-
-    return {
-      keys: [
-        {
-          ...jwk,
-          use: 'sig',
-          alg: 'RS256',
-          kid: this.keyId,
-        },
-      ],
-    };
+  async getJwks() {
+    return await joseService.getJwks();
   }
 
   // -------- AUTHORIZE --------
@@ -309,40 +296,28 @@ export class OAuth2Service {
     // delete cache
     await redis.del(this.authCode_RK(authCodeHash));
 
-    const now = Math.floor(Date.now() / 1000);
-
     // Issue Access Token
-    const accessToken = jwt.sign(
+    const accessToken = await joseService.signJwt(
       {
-        iss: ENV.OAUTH_ISSUER,
-        aud: payload.clientId,
-        sub: payload.userId,
         scope: payload.scope,
-        iat: now,
-        exp: now + this.accessTokenExpiry,
       },
-      this.jwtPrivateKey,
       {
-        algorithm: 'RS256',
-        keyid: this.keyId,
+        issuer: ENV.AUTH_ISSUER,
+        audience: payload.clientId,
+        expiresIn: String(this.authTokensExpiry),
       },
     );
 
     // Issue ID Token
-    const idToken = jwt.sign(
+    const idToken = await joseService.signJwt(
       {
-        iss: ENV.OAUTH_ISSUER,
-        aud: payload.clientId,
-        sub: payload.userId,
-        iat: now,
-        exp: now + this.accessTokenExpiry,
         auth_time: payload.authTime,
         nonce: payload.nonce,
       },
-      this.jwtPrivateKey,
       {
-        algorithm: 'RS256',
-        keyid: this.keyId,
+        issuer: ENV.AUTH_ISSUER,
+        audience: payload.clientId,
+        expiresIn: String(this.authTokensExpiry),
       },
     );
 

@@ -73,6 +73,23 @@ model OAuthClient {
   @@index([domain])
 }
 
+model SigningKeys {
+  id  String @id @default(uuid())
+  kid String @unique
+
+  use       KeyUse
+  algorithm KeyAlgorithm
+
+  privateKeyEnc Json
+  publicKey Json
+
+  status KeyStatus
+
+  createdAt DateTime  @default(now())
+  rotatedAt DateTime?
+  expiresAt DateTime?
+}
+
 enum UserRole {
   ADMIN
   USER
@@ -87,4 +104,20 @@ enum AuthProvider {
 enum OAuthClientType {
   PUBLIC
   CONFIDENTIAL
+}
+
+enum KeyStatus {
+  ACTIVE
+  RETIRED
+  REVOKED
+}
+
+enum KeyUse {
+  SIG
+  ENC
+}
+
+enum KeyAlgorithm {
+  RS256
+  ES256
 }

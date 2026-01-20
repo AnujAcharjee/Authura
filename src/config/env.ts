@@ -68,12 +68,13 @@ const envSchema = z.object({
   SIGNIN_LOCK_UNTIL: z.string().transform(Number),
   MAX_SIGNIN_FAILURES: z.string().transform(Number),
 
-  // OAuth
-  JWT_PRIVATE_KEY_PATH: z.string(),
-  JWT_PUBLIC_KEY_PATH: z.string(),
-  OAUTH_ISSUER: z.url(),
+  // Auth
+  AUTH_ISSUER: z.url(),
   AUTH_CODE_EX: z.string().transform(Number),
-  ACCESS_TOKEN_EX: z.string().transform(Number),
+  AUTH_TOKENS_EX: z.string(),
+  KEY_ENC_SECRET: z.string().regex(/^[0-9a-f]{64}$/, {
+    message: 'KEY_ENC_SECRET must be exactly 32 bytes (64 hex characters)',
+  }),
 });
 
 export const ENV = envSchema.parse(process.env);

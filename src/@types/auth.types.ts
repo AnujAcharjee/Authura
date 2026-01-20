@@ -1,36 +1,40 @@
 import { UserRole } from '@/config/database';
 
-export interface SignupParams {
+export type SignupParams = {
   name: string;
   email: string;
   password: string;
-}
+};
 
-export interface SignupResult {
+export type SignupResult = {
   id: string;
   email: string;
   name: string;
   role: UserRole;
   createdAt: Date;
-}
+};
 
-export interface VerifyEmailResult {
+export type VerifyEmailResult = {
   identitySessionId: string;
   activeSessionId: string;
-}
+};
 
-export interface SigninParams {
+export type SigninParams = {
   email: string;
   password: string;
-}
+};
 
-export interface SigninResult {
+export type SigninResult = {
+  id: string;
+  email: string;
   mfaEnabled: boolean;
   identitySessionId: string | undefined;
   activeSessionId: string | undefined;
-}
+};
 
-export interface VerifySignInResult {
+export type VerifySignInResult = {
+  id: string;
+  email: string;
   identitySessionId: string;
   activeSessionId: string;
-}
+};

@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { OAuth2Service } from '@/services/OAuth2.service';
 import { BaseController } from '@/controllers/base.controller';
-import { AppError } from '@/utils/appError';
-import { ErrorCode } from '@/utils/errorCodes';
 
 export class OAuth2Controller extends BaseController {
   constructor(private oauth2Service: OAuth2Service) {
@@ -12,10 +10,10 @@ export class OAuth2Controller extends BaseController {
   // ---------------- REGISTER CLIENT ----------------
   registerClient = (req: Request, res: Response, next: NextFunction): void => {
     this.handelRequest(req, res, next, async () => {
-      const { domain, client_type } = req.body;
+      const { slug, client_type } = req.body;
 
       const data = await this.oauth2Service.registerClient({
-        domain,
+        slug,
         clientType: client_type,
       });
 
@@ -45,12 +43,6 @@ export class OAuth2Controller extends BaseController {
     });
   };
 
-  // ---------------- JWKS ----------------
-  getJwks = (_req: Request, res: Response): void => {
-    const jwks = this.oauth2Service.getJwks();
-    res.json(jwks);
-  };
-
   // ---------------- AUTHORIZE ----------------
   // 'OAuth/authorize' is NOT an API endpoint -> It is a browser flow endpoint
   authorizeClient = async (req: Request, res: Response, next: NextFunction) => {
@@ -66,11 +58,6 @@ export class OAuth2Controller extends BaseController {
         code_challenge_method,
       } = req.query;
 
-      const userId = req.user?.userId;
-      if (!userId) {
-        throw new AppError('User not authenticated', 401, ErrorCode.UNAUTHORIZED);
-      }
-
       const authCode = await this.oauth2Service.authorizeClient({
         responseType: String(response_type),
         clientId: String(client_id),
@@ -79,7 +66,7 @@ export class OAuth2Controller extends BaseController {
         nonce: nonce ? String(nonce) : undefined,
         codeChallenge: code_challenge ? String(code_challenge) : undefined,
         codeChallengeMethod: code_challenge_method as 'S256' | undefined,
-        userId,
+        userId: req.user?.userId,
       });
 
       // Set CODE and STATE in  redirect url
@@ -112,5 +99,19 @@ export class OAuth2Controller extends BaseController {
         message: 'Tokens issued successfully',
       };
     });
+  };
+
+  // ---------------- JWKS ----------------
+  getJwks = (req: Request, res: Response, next: NextFunction): void => {
+    this.handelRequest(
+      req,
+      res,
+      next,
+      async () => {
+        const jwks = await this.oauth2Service.getJwks();
+        return { keys: jwks.keys };
+      },
+      { raw: true },
+    );
   };
 }

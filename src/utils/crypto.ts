@@ -29,5 +29,3 @@ export const verifyPKCE = ({
 
   return true;
 };
-
-export const createPublicJWK = (jwtPublicKey: string) => crypto.createPublicKey(jwtPublicKey).export({ format: 'jwk' });

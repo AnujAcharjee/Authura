@@ -51,10 +51,7 @@ export class AuthController extends BaseController {
 
       await this.setSessionCookies(res, ids?.identitySessionId, ids?.activeSessionId);
 
-      return {
-        data: null,
-        message: 'Email verified successfully. You are now signed in.',
-      };
+      return { message: 'Email verified successfully. You are now signed in.' };
     });
   };
 
@@ -63,10 +60,7 @@ export class AuthController extends BaseController {
       const { email } = req.body;
       await this.authService.resendVerificationEmail(email);
 
-      return {
-        data: null,
-        message: 'If an account exists, a verification email has been sent',
-      };
+      return { message: 'If an account exists, a verification email has been sent' };
     });
   };
 
@@ -74,18 +68,18 @@ export class AuthController extends BaseController {
     this.handelRequest(req, res, next, async () => {
       const { email, password } = req.body;
 
-      const vals = await this.authService.signin({ email, password });
+      const data = await this.authService.signin({ email, password });
 
       let message: string;
-      if (!vals?.mfaEnabled && vals?.identitySessionId && vals?.activeSessionId) {
-        await this.setSessionCookies(res, vals?.identitySessionId, vals?.activeSessionId);
+      if (!data?.mfaEnabled && data?.identitySessionId && data?.activeSessionId) {
+        await this.setSessionCookies(res, data?.identitySessionId, data?.activeSessionId);
         message = `User signed-in successfully`;
       } else {
         message = `Sign-in verification email has been sent to the registered email address`;
       }
 
       return {
-        data: null,
+        data: { email: data.email, mfaEnabled: data.mfaEnabled },
         message,
       };
     });
@@ -95,12 +89,12 @@ export class AuthController extends BaseController {
     this.handelRequest(req, res, next, async () => {
       const { token } = req.params;
 
-      const ids = await this.authService.verifySignIn(token);
+      const data = await this.authService.verifySignIn(token);
 
-      await this.setSessionCookies(res, ids?.identitySessionId, ids?.activeSessionId);
+      await this.setSessionCookies(res, data?.identitySessionId, data?.activeSessionId);
 
       return {
-        data: null,
+        data: { id: data.id, email: data.email },
         message: `User signed-in successfully`,
       };
     });
@@ -111,15 +105,12 @@ export class AuthController extends BaseController {
       const isid = req.signedCookies[COOKIE_NAMES.IDENTITY_SESSION];
       const asid = req.signedCookies[COOKIE_NAMES.ACTIVE_SESSION];
 
-      const signoutMsg = await this.authService.signout(isid, asid);
+      await this.authService.signout(isid, asid);
 
       res.clearCookie(COOKIE_NAMES.IDENTITY_SESSION, { signed: true });
       res.clearCookie(COOKIE_NAMES.ACTIVE_SESSION, { signed: true });
 
-      return {
-        data: null,
-        message: 'User signed out successfully',
-      };
+      return { message: 'User signed out successfully' };
     });
   };
 
@@ -131,10 +122,7 @@ export class AuthController extends BaseController {
 
       this.setSessionCookies(res, null, asid);
 
-      return {
-        data: null,
-        message: 'Session refreshed successfully',
-      };
+      return { message: 'Session refreshed successfully' };
     });
   };
 
@@ -144,10 +132,7 @@ export class AuthController extends BaseController {
 
       await this.authService.forgotPassword(email);
 
-      return {
-        data: null,
-        message: 'Password reset email sent',
-      };
+      return { message: 'Password reset email sent' };
     });
   };
 
@@ -158,10 +143,7 @@ export class AuthController extends BaseController {
 
       await this.authService.resetPassword(token, password);
 
-      return {
-        data: null,
-        message: 'Password reset successfully',
-      };
+      return { message: 'Password reset successfully' };
     });
   };
 }

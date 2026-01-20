@@ -1,23 +1,23 @@
 import { OAuthClientType } from 'generated/prisma';
 
-export interface RegisterClientParams {
-  domain: string;
+export type RegisterClientParams = {
+  slug: string;
   clientType: OAuthClientType;
-}
+};
 
-export interface RegisterClientResult {
+export type RegisterClientResult = {
   clientId: string;
   clientSecret: string;
-}
+};
 
-export interface UpdateRedirectsParams {
+export type UpdateRedirectsParams = {
   redirectUri: string;
   action: 'add' | 'remove';
   clientId: string;
   clientSecret: string;
-}
+};
 
-export interface AuthorizeClientParams {
+export type AuthorizeClientParams = {
   responseType: string;
   clientId: string;
   redirectUri: string;
@@ -26,22 +26,22 @@ export interface AuthorizeClientParams {
   codeChallenge?: string;
   codeChallengeMethod?: 'S256';
   userId: string;
-}
+};
 
-export interface IssueTokensParams {
+export type IssueTokensParams = {
   grantType: 'authorization_code';
   code: string;
   codeVerifier: string;
   clientId: string;
   clientSecret: string;
-}
+};
 
-export interface IssueTokensResult {
+export type IssueTokensResult = {
   accessToken: string;
   idToken: string;
-}
+};
 
-export interface CachedClient {
+export type CachedClient = {
   userId: string;
   clientId: string;
   domain: string;
@@ -51,4 +51,4 @@ export interface CachedClient {
   codeChallenge?: string;
   codeChallengeMethod?: 'S256';
   authTime: number;
-}
+};

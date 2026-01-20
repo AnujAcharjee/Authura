@@ -307,6 +307,8 @@ export class AuthService {
     }
 
     return {
+      id: user.id,
+      email,
       mfaEnabled: user.mfaEnabled,
       identitySessionId,
       activeSessionId,
@@ -345,6 +347,8 @@ export class AuthService {
     const activeSessionId = await sessionService.createActiveSession(user.id, user.role);
 
     return {
+      id: user.id,
+      email: user.email,
       identitySessionId,
       activeSessionId,
     };
@@ -364,7 +368,11 @@ export class AuthService {
   // REFRESH ACTIVE SESSION
   async refreshActiveSession(isid: string): Promise<string> {
     if (!isid) {
-      throw new AppError('Identity session token is missing. Sign in again.', 401, ErrorCode.IDENTITY_SESSION_EXPIRED);
+      throw new AppError(
+        'Identity session token is missing. Sign in again.',
+        401,
+        ErrorCode.IDENTITY_SESSION_EXPIRED,
+      );
     }
 
     const isidHash = sha256(isid);
@@ -434,7 +442,7 @@ export class AuthService {
   }
 
   // RESET PASSWORD
-  async resetPassword(token: string, newPassword: string) {
+  async resetPassword(token: string, newPassword: string): Promise<void> {
     const hashedToken = sha256(token);
     const userId = await redis.get(this.resetPasswordToken_RK(hashedToken));
 

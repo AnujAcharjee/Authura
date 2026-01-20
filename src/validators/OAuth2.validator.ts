@@ -4,7 +4,7 @@ import { OAuthClientType } from '@/config/database';
 // REGISTER CLIENT
 export const registerClientSchema = z.object({
   body: z.object({
-    domain: z.string().min(1, 'Domain is required'),
+    slug: z.string().min(1, 'Domain is required'),
     client_type: z.enum(OAuthClientType).optional(),
   }),
 });

@@ -7,10 +7,17 @@ export abstract class BaseController {
     res: Response,
     next: NextFunction,
     action: () => Promise<any>,
+    options?: { raw?: boolean },
   ): Promise<void> {
     try {
       const result = await action();
-      ApiResponse.success(res, result.data, result.message);
+
+      if (options?.raw === true) {
+        res.json(result);
+        return;
+      }
+
+      ApiResponse.success(res, result?.data, result?.message);
     } catch (error) {
       next(error);
     }
