@@ -17,6 +17,7 @@ COPY prisma ./prisma/
 COPY tsconfig*.json ./
 COPY scripts ./scripts/
 COPY nodemon.json ./
+COPY public ./public
 
 # Set permissions
 RUN chown -R appuser:appgroup /app

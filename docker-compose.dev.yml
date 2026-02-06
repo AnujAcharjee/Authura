@@ -3,7 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-
     volumes:
       - ./src:/app/src:delegated
       - ./prisma:/app/prisma:delegated
@@ -12,34 +11,24 @@ services:
       - ./scripts:/app/scripts:delegated
       - ./tsconfig.scripts.json:/app/tsconfig.scripts.json:delegated
       - ./nodemon.json:/app/nodemon.json:delegated
+      - ./tailwind.config.js:/app/tailwind.config.js:delegated
       - api_node_modules:/app/node_modules
       - api_dist:/app/dist
-
     ports:
       - "8080:8080"
-
     env_file:
       - .env
-
     depends_on:
       redis:
         condition: service_healthy
-
-    command: >
-      sh -c "
-        npx prisma generate &&
-        if [ \"$$RUN_SEEDS\" = \"true\" ]; then npm run seed:dev; fi &&
-        npx nodemon
-      "
-
+    command: |
+      sh -c '
+        npm run prisma:generate &&
+        if [ "$RUN_SEEDS" = "true" ]; then npm run seed:dev; fi &&
+        npx concurrently "npm run css:dev" "npm run dev"
+      '
     networks:
       - authura-network
-
-    # healthcheck:
-    #   test: ["CMD", "wget", "--spider", "http://localhost:4300/monitoring/health"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 3
     restart: unless-stopped
 
   redis:

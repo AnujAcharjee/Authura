@@ -1,0 +1,37 @@
+<nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/60 shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <!-- Logo -->
+      <div class="flex items-center">
+        <a href="/" class="flex items-center gap-2 text-xl font-bold text-slate-900 hover:text-orange-600 transition-colors">
+          <%- include("../icons/logo") %>
+          <span>Authura</span>
+        </a>
+      </div>
+
+      <!-- Navigation Links -->
+      <div class="hidden md:flex items-center gap-6">
+        <a href="/account" class="text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors">
+          Dashboard
+        </a>
+        <a href="/docs" class="text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors">
+          Documentation
+        </a>
+      </div>
+
+      <!-- User Menu -->
+      <div class="flex items-center gap-4">
+        <% if (typeof user !== 'undefined' && user) { %>
+          <%- include("./user-menu", { user }) %>
+        <% } else { %>
+          <a href="/signin" class="text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors">
+            Sign in
+          </a>
+          <a href="/signup" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-linear-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold hover:from-orange-600 hover:to-orange-700 transition-all shadow-sm hover:shadow-md">
+            Get Started
+          </a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</nav>

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { logger } from "@/config/logger";
 
 export const loggingMiddleware = (
@@ -18,7 +18,7 @@ export const loggingMiddleware = (
       userAgent: req.get("user-agent"),
       ip: req.ip,
       context: "HttpRequest",
-      // userId: req.user?.userId,
+      userId: req.user?.id,
       query: Object.keys(req.query).length ? req.query : undefined,
       body: Object.keys(req.body || {}).length ? req.body : undefined,
     };

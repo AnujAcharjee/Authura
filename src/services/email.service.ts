@@ -1,16 +1,18 @@
 import nodemailer from 'nodemailer';
 import { ENV } from '@/config/env';
 import { logger } from '@/config/logger';
-import { getEmailVerificationTemplate, getPasswordResetEmailTemplate, getSignInVerificationTemplate } from '@/templates/email';
+import {
+  getEmailVerificationTemplate,
+  getPasswordResetEmailTemplate,
+  getSignInVerificationTemplate,
+} from '@/templates/email';
 
 class EmailService {
   private transporter!: nodemailer.Transporter;
-  private readonly fromAddress: string;
+  private readonly fromAddress = ENV.SMTP_FROM || 'noreply@example.com';
   private initialized = false;
 
   constructor() {
-    this.fromAddress = ENV.SMTP_FROM || 'noreply@example.com';
-
     // logger.info('Using SMTP configuration', {
     //   context: 'EmailService.constructor',
     //   host: ENV.SMTP_HOST,
@@ -100,7 +102,7 @@ class EmailService {
   private precompileTemplates() {
     try {
       // Pre-compile by running once
-      getEmailVerificationTemplate('test', 'test'); 
+      getEmailVerificationTemplate('test', 'test');
       getPasswordResetEmailTemplate('test', 'test');
       getSignInVerificationTemplate('test', 'test');
 
@@ -111,8 +113,7 @@ class EmailService {
   }
 
   async sendVerificationEmail(to: string, name: string, verificationToken: string): Promise<void> {
-    // TODO: Change this to frontend URL -> frontend extracts the token and make api call on behalf of user
-    const verificationUrl = `${ENV.FRONTEND_URL}/api/auth/verify-email/${verificationToken}`;
+    const verificationUrl = `${ENV.SERVER_URL}/api/auth/verify-email/${verificationToken}`;
 
     try {
       const info = await this.transporter.sendMail({
@@ -139,7 +140,7 @@ class EmailService {
   }
 
   async sendSignInVerifyEmail(to: string, name: string, verificationToken: string): Promise<void> {
-    const verificationUrl = `${ENV.FRONTEND_URL}/api/auth/verify-email/${verificationToken}`;
+    const verificationUrl = `${ENV.SERVER_URL}/api/auth/verify-email/${verificationToken}`;
 
     try {
       const info = await this.transporter.sendMail({
@@ -166,7 +167,7 @@ class EmailService {
   }
 
   async sendPasswordResetEmail(to: string, name: string, resetToken: string): Promise<void> {
-    const resetUrl = `${ENV.FRONTEND_URL}/reset-password/${resetToken}`; // TODO: Change this to frontend URL
+    const resetUrl = `${ENV.FRONTEND_URL}/reset-password/:${resetToken}`;
 
     try {
       const info = await this.transporter.sendMail({

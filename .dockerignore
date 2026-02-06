@@ -1,0 +1,45 @@
+# Dependencies (rebuilt inside container)
+node_modules
+
+# Build output
+dist
+build
+.out
+
+# Logs
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+logs
+*.log
+
+# Env files (never bake secrets)
+.env
+.env.*
+!.env.example
+
+# VCS
+.git
+.gitignore
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode
+.idea
+
+# Test & coverage
+coverage
+*.spec.ts
+*.test.ts
+
+# Linting / formatting (safe to ignore in Docker)
+.eslintrc
+.eslintrc.*
+.prettierrc
+.prettierrc.*
+eslint.config.*
+
+README.md

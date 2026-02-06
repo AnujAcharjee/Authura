@@ -1,22 +1,24 @@
 import redis from '@/config/redis';
 import { ENV } from '@/config/env';
 import prisma from '@/config/database';
-import { randomToken, sha256 } from '@/utils/crypto';
-import { UserRole } from '@/config/database';
+import { AppCrypto } from '@/utils/crypto';
 import { AppError } from '@/utils/appError';
 import { ErrorCode } from '@/utils/errorCodes';
+import { type Role, CRYPTO_ALGORITHMS } from '@/utils/constant';
 
-class SessionService {
-  private activeSessionExpiry: number;
-  private identitySessionExpiry: number;
+type refreshActiveSessionResult = {
+  activeSessId: string;
+  userId: string;
+  roles: Role[];
+};
 
-  constructor() {
-    this.activeSessionExpiry = ENV.NODE_ENV === 'development' ? 15 * 60 : ENV.ACTIVE_SESSION_EX;
-    this.identitySessionExpiry = ENV.NODE_ENV === 'development' ? 30 * 24 * 60 * 60 : ENV.IDENTITY_SESSION_EX;
-  }
+export class SessionService {
+  private readonly activeSessionExpiry = ENV.NODE_ENV === 'production' ? ENV.ACTIVE_SESSION_EX : 15 * 60;
+  private readonly identitySessionExpiry =
+    ENV.NODE_ENV === 'production' ? ENV.IDENTITY_SESSION_EX : 30 * 24 * 60 * 60;
 
   // Redis Key
-  private activeSession_RK = (asidHash: string) => `session:active:${asidHash}`;
+  private activeSessionKey = (asidHash: string) => `session:active:${asidHash}`;
 
   // Long lived
   async createIdentitySession(userId: string): Promise<string> {
@@ -32,8 +34,8 @@ class SessionService {
     const MAX_RETRIES = 5;
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-      const isid = randomToken(32);
-      const isidHash = sha256(isid);
+      const isid = AppCrypto.randomToken(32);
+      const isidHash = AppCrypto.hash(isid, CRYPTO_ALGORITHMS.sha256, 'hex');
 
       try {
         await prisma.identitySession.create({
@@ -61,8 +63,8 @@ class SessionService {
   }
 
   // Short lived
-  async createActiveSession(userId: string, role: UserRole): Promise<string> {
-    if (!userId || !role) {
+  async createActiveSession(userId: string, roles: Role[]): Promise<string> {
+    if (!userId || !roles) {
       throw new AppError(
         'Invariant violation: userId & role is required',
         500,
@@ -74,17 +76,17 @@ class SessionService {
     const MAX_RETRIES = 5;
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-      const asid = randomToken(32);
-      const asidHash = sha256(asid);
+      const asid = AppCrypto.randomToken(32);
+      const asidHash = AppCrypto.hash(asid, CRYPTO_ALGORITHMS.sha256, 'hex');
 
       const payload = {
         userId,
-        role,
+        roles,
         createdAt: Date.now(),
       };
 
       const result = await redis.set(
-        this.activeSession_RK(asidHash),
+        this.activeSessionKey(asidHash),
         JSON.stringify(payload),
         'EX',
         this.activeSessionExpiry,
@@ -99,6 +101,55 @@ class SessionService {
     throw new Error('Failed to create unique active session');
   }
 
+  // REFRESH ACTIVE SESSION
+  async refreshActiveSession(isid: string): Promise<refreshActiveSessionResult> {
+    if (!isid) {
+      throw new AppError(
+        'Identity session token is missing. Sign in again.',
+        401,
+        ErrorCode.IDENTITY_SESSION_EXPIRED,
+      );
+    }
+
+    const isidHash = AppCrypto.hash(isid, CRYPTO_ALGORITHMS.sha256, 'hex');
+
+    const session = await prisma.identitySession.findUnique({
+      where: { token: isidHash },
+      include: {
+        user: {
+          select: {
+            id: true,
+            roles: true,
+            isActive: true,
+            isLocked: true,
+          },
+        },
+      },
+    });
+
+    if (!session || !session.user) {
+      throw new AppError('Invalid session', 401, ErrorCode.UNAUTHORIZED);
+    }
+
+    // verify
+    if (!session.user.isActive) {
+      throw new AppError('Account disabled', 403, ErrorCode.FORBIDDEN);
+    }
+
+    if (session.user.isLocked) {
+      throw new AppError('Account is locked. Try again later.', 423, ErrorCode.ACCOUNT_LOCKED);
+    }
+
+    if (session.revoked || session.expiresAt.getTime() < Date.now()) {
+      throw new AppError('Session expired. Sign in again', 401, ErrorCode.UNAUTHORIZED);
+    }
+
+    // create new active session
+    const activeSessId = await this.createActiveSession(session.user.id, session.user.roles);
+
+    return { activeSessId, userId: session.user.id, roles: session.user.roles };
+  }
+
   // Revocation
   async revokeIdentitySession(isid: string) {
     if (!isid) {
@@ -110,7 +161,7 @@ class SessionService {
       );
     }
 
-    const isidHash = sha256(isid);
+    const isidHash = AppCrypto.hash(isid, CRYPTO_ALGORITHMS.sha256, 'hex');
     await prisma.identitySession.updateMany({
       where: {
         token: isidHash,
@@ -133,8 +184,8 @@ class SessionService {
       );
     }
 
-    const asidHash = sha256(asid);
-    await redis.del(this.activeSession_RK(asidHash));
+    const asidHash = AppCrypto.hash(asid, CRYPTO_ALGORITHMS.sha256, 'hex');
+    await redis.del(this.activeSessionKey(asidHash));
   }
 }
 

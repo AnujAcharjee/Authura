@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <%- include("../partials/head", { title }) %>
+</head>
+
+<body class="min-h-screen bg-linear-to-br from-white via-orange-50/20 to-sky-50/30 text-slate-900 antialiased">
+  
+  <!-- Background Pattern -->
+  <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+    <div class="absolute top-0 right-0 w-125 h-125 bg-linear-to-bl from-orange-200/30 to-transparent rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 left-0 w-125 h-125 bg-linear-to-tr from-sky-200/30 to-transparent rounded-full blur-3xl"></div>
+  </div>
+
+  <%- body %>
+</body>
+
+</html>

@@ -1,5 +1,6 @@
 import Redis, { RedisOptions } from 'ioredis';
 import { ENV } from '@/config/env';
+import { logger } from '@/config/logger';
 
 const options: RedisOptions = {
   host: ENV.REDIS_HOST,
@@ -17,7 +18,7 @@ const handleShutdown = async () => {
   if (isShuttingDown) return;
   isShuttingDown = true;
 
-  console.log('Shutting down Redis connection');
+  logger.info('Shutting down Redis connection');
   await redis.quit();
 };
 

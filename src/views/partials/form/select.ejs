@@ -1,0 +1,37 @@
+<%
+  const _id = typeof id !== 'undefined' ? id : null;
+  const _name = typeof name !== 'undefined' ? name : null;
+  const _label = typeof label !== 'undefined' ? label : null;
+  const _required = typeof required !== 'undefined' ? required : false;
+  const _options = typeof options !== 'undefined' ? options : [];
+  const _helperText = typeof helperText !== 'undefined' ? helperText : null;
+  const _value = typeof value !== 'undefined' ? value : null;
+%>
+
+<div class="space-y-1.5">
+  <% if (_label && _id) { %>
+    <label for="<%= _id %>" class="block text-sm font-medium text-slate-700">
+      <%= _label %>
+      <% if (_required) { %>
+        <span class="text-red-500">*</span>
+      <% } %>
+    </label>
+  <% } %>
+
+  <select
+    <% if (_id) { %>id="<%= _id %>"<% } %>
+    <% if (_name) { %>name="<%= _name %>"<% } %>
+    <% if (_required) { %>required<% } %>
+    class="block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 transition-all duration-200 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/10"
+  >
+    <% _options.forEach(function(option) { %>
+      <option value="<%= option.value %>" <%= _value === option.value ? 'selected' : '' %>>
+        <%= option.label %>
+      </option>
+    <% }); %>
+  </select>
+
+  <% if (_helperText) { %>
+    <p class="text-xs text-slate-500 mt-1"><%= _helperText %></p>
+  <% } %>
+</div>

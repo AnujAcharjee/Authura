@@ -1,0 +1,78 @@
+<% layout("layouts/main") %>
+
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4">
+  <div class="w-full max-w-md">
+    <!-- Main Card -->
+    <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/60 p-8 sm:p-10">
+
+      <%- include("../../partials/auth/header", {
+        title: "Welcome back",
+        subtitle: "Sign in to access your account and manage your applications."
+      }) %>
+
+      <%- include("../../partials/auth/alert", {success, error}) %>
+
+      <form method="POST" action="/api/auth/signin" class="space-y-5">
+
+        <%- include("../../partials/form/input", {
+          id: "email",
+          name: "email",
+          type: "email",
+          label: "Email address",
+          required: true,
+          autocomplete: "email",
+          placeholder: "you@example.com"
+        }) %>
+
+        <%- include("../../partials/form/input", {
+          id: "password",
+          name: "password",
+          type: "password",
+          label: "Password",
+          required: true,
+          autocomplete: "current-password",
+          placeholder: "••••••••"
+        }) %>
+
+        <div class="flex items-center justify-between text-sm">
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" class="w-4 h-4 text-orange-600 bg-white border-slate-300 rounded focus:ring-2 focus:ring-orange-500 focus:ring-offset-0 transition-all cursor-pointer">
+            <span class="text-slate-600 group-hover:text-slate-900">Remember me</span>
+          </label>
+          
+          <a href="/forgot-password" class="font-medium text-transparent bg-clip-text bg-linear-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 transition-all">
+            Forgot password?
+          </a>
+        </div>
+
+        <div class="pt-2">
+          <%- include("../../partials/form/button", {
+            type: "submit",
+            text: "Sign in",
+            variant: "primary",
+            fullWidth: true,
+            size: "lg"
+          }) %>
+        </div>
+
+      </form>
+
+      <%- include("../../partials/auth/footer", {
+        text: "Don't have an account?",
+        href: "/signup",
+        linkText: "Create one now"
+      }) %>
+
+    </div>
+
+    <!-- Trust Indicator -->
+    <div class="text-center mt-6">
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 backdrop-blur-sm border border-white/60 shadow-sm">
+        <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+        </svg>
+        <span class="text-sm font-medium text-slate-700">Secure & Encrypted</span>
+      </div>
+    </div>
+  </div>
+</div>

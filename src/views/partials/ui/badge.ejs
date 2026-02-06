@@ -1,0 +1,22 @@
+<%
+  const _variant = typeof variant !== 'undefined' ? variant : 'default'; // default | success | warning | danger | info
+  const _size = typeof size !== 'undefined' ? size : 'md'; // sm | md
+  const _text = typeof text !== 'undefined' ? text : '';
+
+  const sizeClasses = {
+    sm: 'px-2 py-0.5 text-xs',
+    md: 'px-3 py-1 text-sm'
+  };
+
+  const variantClasses = {
+    default: 'bg-slate-100 text-slate-700',
+    success: 'bg-green-100 text-green-700 ring-1 ring-green-200',
+    warning: 'bg-amber-100 text-amber-700 ring-1 ring-amber-200',
+    danger: 'bg-red-100 text-red-700 ring-1 ring-red-200',
+    info: 'bg-sky-100 text-sky-700 ring-1 ring-sky-200'
+  };
+%>
+
+<span class="inline-flex items-center font-medium rounded-full <%= sizeClasses[_size] %> <%= variantClasses[_variant] %>">
+  <%= _text %>
+</span>

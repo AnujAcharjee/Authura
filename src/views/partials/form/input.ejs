@@ -1,0 +1,39 @@
+<%
+  const _id = typeof id !== 'undefined' ? id : null;
+  const _name = typeof name !== 'undefined' ? name : null;
+  const _label = typeof label !== 'undefined' ? label : null;
+  const _type = typeof type !== 'undefined' ? type : 'text';
+  const _required = typeof required !== 'undefined' ? required : false;
+  const _autocomplete = typeof autocomplete !== 'undefined' ? autocomplete : null;
+  const _placeholder = typeof placeholder !== 'undefined' ? placeholder : null;
+  const _value = typeof value !== 'undefined' ? value : null;
+  const _disabled = typeof disabled !== 'undefined' ? disabled : false;
+  const _helperText = typeof helperText !== 'undefined' ? helperText : null;
+%>
+
+<div class="space-y-1.5">
+  <% if (_label && _id) { %>
+    <label for="<%= _id %>" class="block text-sm font-medium text-slate-700">
+      <%= _label %>
+      <% if (_required) { %>
+        <span class="text-red-500">*</span>
+      <% } %>
+    </label>
+  <% } %>
+
+  <input
+    <% if (_id) { %>id="<%= _id %>"<% } %>
+    <% if (_name) { %>name="<%= _name %>"<% } %>
+    type="<%= _type %>"
+    <% if (_required) { %>required<% } %>
+    <% if (_autocomplete) { %>autocomplete="<%= _autocomplete %>"<% } %>
+    <% if (_placeholder) { %>placeholder="<%= _placeholder %>"<% } %>
+    <% if (_value) { %>value="<%= _value %>"<% } %>
+    <% if (_disabled) { %>disabled<% } %>
+    class="block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-all duration-200 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/10 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
+  />
+
+  <% if (_helperText) { %>
+    <p class="text-xs text-slate-500 mt-1"><%= _helperText %></p>
+  <% } %>
+</div>

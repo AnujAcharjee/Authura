@@ -1,0 +1,282 @@
+<% layout("layouts/main") %>
+
+<%
+  const _variant = typeof variant !== 'undefined' ? variant : 'default'; // default | success | warning | danger | info
+  const _size = typeof size !== 'undefined' ? size : 'md'; // sm | md
+  const _text = typeof text !== 'undefined' ? text : '';
+
+  const sizeClasses = {
+    sm: 'px-2 py-0.5 text-xs',
+    md: 'px-3 py-1 text-sm'
+  };
+
+  const variantClasses = {
+    default: 'bg-slate-100 text-slate-700',
+    success: 'bg-green-100 text-green-700 ring-1 ring-green-200',
+    warning: 'bg-amber-100 text-amber-700 ring-1 ring-amber-200',
+    danger: 'bg-red-100 text-red-700 ring-1 ring-red-200',
+    info: 'bg-sky-100 text-sky-700 ring-1 ring-sky-200'
+  };
+%>
+
+<div class="max-w-7xl mx-auto py-8 space-y-8">
+
+  <!-- Back Button -->
+  <div>
+    <a href="/account" class="inline-flex items-center text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors">
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      Back to Dashboard
+    </a>
+  </div>
+
+  <!-- App Overview -->
+  <section class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-md border border-white/60 p-6">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-linear-to-br from-orange-500 to-orange-600 flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900"><%= client.name %></h1>
+          <% if (client.domain) { %>
+          <p class="text-sm text-slate-600 font-mono"><%= client.domain %></p>
+          <% } %>
+        </div>
+      </div>
+      <span class="inline-flex items-center font-medium rounded-full <%= sizeClasses["md"] %> <%= variantClasses[client.isActive ? "success" : "default"] %>">
+        <%= client.isActive ? "Active" : "Disabled" %>
+      </span>
+    </div>
+
+    <div class="space-y-4">
+      <!-- Client ID -->
+      <div class="flex items-center justify-between p-4 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200">
+        <div class="flex-1 min-w-0 mr-4">
+          <p class="text-sm font-medium text-slate-600 mb-2">Client ID</p>
+          <div class="flex items-center gap-2">
+            <input id="client-id" type="text" readonly value="<%= client.id %>" class="flex-1 text-sm font-mono bg-slate-100 text-slate-800 px-3 py-2 rounded-lg focus:outline-none border border-slate-200" />
+            <button type="button" onclick="copyToClipboard('<%= client.id %>', this)" class="shrink-0 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-linear-to-r from-slate-600 to-slate-700 rounded-lg hover:from-slate-700 hover:to-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-400/30 transition-all">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+              </svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-sky-50/50 border border-sky-200 rounded-xl p-4">
+        <p class="text-sm text-sky-800">
+          <span class="font-semibold">💡 Tip:</span> Use this Client ID to identify your application during OAuth authorization and token requests.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Security Section -->
+  <section class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-md border border-white/60 p-6">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-linear-to-br from-orange-500 to-orange-600 flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-slate-900">Security</h2>
+        <p class="text-sm text-slate-600">Manage authentication settings</p>
+      </div>
+    </div>
+
+    <div class="space-y-6">
+      <!-- Client Type -->
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700">Client Type</label>
+        <div class="p-4 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200">
+          <p class="font-semibold text-slate-900"><%= client.clientType %></p>
+          <p class="text-xs text-slate-500 mt-1">Determines how this application authenticates with Authura</p>
+        </div>
+      </div>
+
+      <!-- PKCE -->
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700">PKCE (Proof Key for Code Exchange)</label>
+        <div class="p-4 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200">
+          <div class="flex items-center gap-2">
+            <p class="font-semibold text-slate-900 uppercase">
+              <%= client.enforcePKCE ? 'Enforced' : 'Not enforced' %>
+            </p>
+            <span class="inline-flex items-center font-medium rounded-full <%= sizeClasses["sm"] %> <%= variantClasses[client.enforcePKCE ? "success" : "warning"] %>">
+              <%= client.enforcePKCE ? "Enabled" : "Disabled" %>
+            </span>
+
+          </div>
+          <p class="text-xs text-slate-500 mt-1">PKCE protects public clients by preventing authorization code interception</p>
+        </div>
+      </div>
+
+      <!-- Client Secret -->
+      <div class="space-y-3">
+        <label class="text-sm font-medium text-slate-700">Client Secret</label>
+
+        <% if (client.client_secret) { %>
+        <div class="rounded-xl border-l-4 border-amber-500 bg-linear-to-r from-amber-50 to-amber-50/50 p-4">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-amber-900">Important: Store this secret securely</p>
+              <p class="text-xs text-amber-800 mt-1">This secret is shown only once. If lost, rotate the secret to generate a new one.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 p-4 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200">
+          <span class="text-sm text-slate-600 shrink-0">Secret</span>
+          <input type="text" readonly value="<%= client.client_secret %>" class="flex-1 font-mono text-sm bg-white text-slate-800 px-3 py-2 rounded-lg border border-slate-300 focus:outline-none" />
+        </div>
+        <% } else { %>
+        <form action="/api/client/rotate-secret" method="POST">
+          <input type="hidden" name="client_id" value="<%= client.id %>" />
+          <button type="submit" class="inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2.5 text-sm rounded-lg bg-white border-2 border-sky-500 text-sky-600 hover:bg-sky-50 focus:ring-sky-500/30">
+            Rotate Secret
+          </button>
+        </form>
+        <% } %>
+
+        <p class="text-xs text-slate-500">
+          ⚠️ Rotating the secret immediately invalidates the previous one. All applications must be updated.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Redirect URIs Section -->
+  <section class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-md border border-white/60 p-6">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-linear-to-br from-orange-500 to-orange-600 flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-slate-900">Redirect URIs</h2>
+        <p class="text-sm text-slate-600">Manage authorized redirect destinations</p>
+      </div>
+    </div>
+
+    <% if (client.redirectURIs.length === 0) { %>
+    <div class="text-center py-12 px-4 rounded-xl border-2 border-dashed border-slate-200">
+      <svg class="w-12 h-12 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p class="text-slate-700 font-semibold mb-1">No redirect URIs configured</p>
+      <p class="text-sm text-slate-500">Add at least one redirect URI to enable OAuth authorization</p>
+    </div>
+    <% } else { %>
+    <div class="space-y-2">
+      <% for (const uri of client.redirectURIs) { %>
+      <div class="flex items-center justify-between p-4 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200 hover:border-orange-300 transition-colors">
+        <code class="font-mono text-sm text-slate-700 flex-1 truncate pr-4"><%= uri %></code>
+        <form method="POST" action="/api/client/<%= client.id %>/ruri" class="flex items-center">
+          <input type="hidden" name="action" value="del" />
+          <input type="hidden" name="redirect_uri" value="<%= uri %>" />
+          <button type="submit" class="inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed bg-linear-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 focus:ring-red-500/30 shadow-sm hover:shadow-md px-3 py-1.5 text-xs rounded-md">
+            Remove
+          </button>
+        </form>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <!-- Add URI Form -->
+    <div class="mt-6 p-5 rounded-xl bg-linear-to-br from-sky-50 to-sky-100/50 border border-sky-200">
+      <form method="POST" action="/api/client/<%= client.id %>/ruri" class="space-y-3">
+        <input type="hidden" name="action" value="add" />
+
+        <div class="flex items-center gap-3">
+          <input name="redirect_uri" type="url" required placeholder="https://example.com/callback" class="block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-all duration-200 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/10 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed">
+
+          <div class="shrink-0 pt-1">
+            <button type="submit" class="px-4 py-2.5 text-sm rounded-lg inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed bg-white border-2 border-sky-500 text-sky-600 hover:bg-sky-50 focus:ring-sky-500/30">
+              Add URI
+            </button>
+          </div>
+        </div>
+
+        <p class="text-xs text-sky-800">
+          Redirect URIs must exactly match the URI used in authorization requests
+        </p>
+      </form>
+    </div>
+  </section>
+
+  <!-- Metadata Section -->
+  <section class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-md border border-white/60 p-6">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-linear-to-br from-slate-500 to-slate-600 flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <h2 class="text-xl font-bold text-slate-900">Metadata</h2>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div class="p-4 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200">
+        <p class="text-sm text-slate-600 mb-1">Created</p>
+        <p class="font-semibold text-slate-900"><%= createdAtFormatted %></p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200">
+        <p class="text-sm text-slate-600 mb-1">Last Updated</p>
+        <p class="font-semibold text-slate-900"><%= updatedAtFormatted %></p>
+      </div>
+
+      <% if (client.revokedAt) { %>
+      <div class="p-4 rounded-xl bg-linear-to-br from-red-50 to-white border border-red-200">
+        <p class="text-sm text-red-600 mb-1">Revoked</p>
+        <p class="font-semibold text-red-900"><%= revokedAtFormatted %></p>
+      </div>
+      <% } %>
+    </div>
+
+    <p class="text-xs text-slate-500 mt-4">Metadata is read-only and maintained by the system</p>
+  </section>
+
+  <!-- Danger Zone -->
+  <section class="bg-linear-to-br from-red-50 to-red-100/50 rounded-2xl shadow-md border border-red-200 p-6">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-xl bg-linear-to-br from-red-500 to-red-600 flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-red-900">Danger Zone</h2>
+        <p class="text-sm text-red-700">These actions are irreversible</p>
+      </div>
+    </div>
+
+    <div class="space-y-3">
+      <% if (client.isActive) { %>
+      <div>
+        <a href="/client/<%= client.id %>/deactivate?name=<%= client.name %>" class="text-sm text-red-700 hover:text-red-900 font-medium hover:underline">
+          Disable Application
+        </a>
+      </div>
+
+      <% } %>
+      <div>
+        <a href="/client/<%= client.id %>/delete" class="text-sm text-red-700 hover:text-red-900 font-medium hover:underline">
+          Delete Application
+        </a>
+      </div>
+    </div>
+  </section>
+</div>

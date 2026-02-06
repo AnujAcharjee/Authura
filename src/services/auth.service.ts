@@ -1,58 +1,43 @@
-import prisma, { UserRole } from '@/config/database';
+import prisma from '@/config/database';
 import bcrypt from 'bcrypt';
 import redis from '@/config/redis';
 import { AppError } from '@/utils/appError';
 import { ErrorCode } from '@/utils/errorCodes';
-import {
-  SignupParams,
-  SignupResult,
-  VerifyEmailResult,
-  SigninParams,
-  SigninResult,
-  VerifySignInResult,
-} from '@/@types/auth.types';
+import { AppCrypto } from '@/utils/crypto';
 import { emailService } from '@/services/email.service';
-import { randomToken, sha256 } from '@/utils/crypto';
 import { ENV } from '@/config/env';
 import { sessionService } from '@/services/session.service';
+import { ROLES, GENDERS, AUTH_PROVIDERS, CRYPTO_ALGORITHMS, type Role, type Gender } from '@/utils/constant';
 
 export class AuthService {
-  private emailVerificationTokenExpiry: number;
-  private signinFailCountExpiry: number;
-  private signinVerificationTokenExpiry: number;
-  private signinLockUntil: number;
-  private maxSigninFailures: number;
-  private resetPasswordExpiry: number;
-
-  constructor() {
-    this.emailVerificationTokenExpiry =
-      ENV.NODE_ENV == 'production' ? ENV.EMAIL_VERIFICATION_TOKEN_EX : 24 * 60 * 60;
-    this.signinFailCountExpiry = ENV.NODE_ENV == 'production' ? ENV.SIGN_IN_FAIL_COUNT_EX : 24 * 60 * 60;
-    this.signinVerificationTokenExpiry =
-      ENV.NODE_ENV == 'production' ? ENV.SIGN_VERIFICATION_TOKEN_EX : 24 * 60 * 60;
-    this.signinLockUntil = ENV.NODE_ENV == 'production' ? ENV.SIGNIN_LOCK_UNTIL : 6 * 60 * 60;
-    this.maxSigninFailures = ENV.NODE_ENV == 'production' ? ENV.MAX_SIGNIN_FAILURES : 20;
-    this.resetPasswordExpiry = 60 * 60;
-  }
+  private readonly emailVerificationTokenExpiry =
+    ENV.NODE_ENV === 'production' ? ENV.EMAIL_VERIFICATION_TOKEN_EX : 24 * 60 * 60;
+  private readonly signinFailCountExpiry =
+    ENV.NODE_ENV === 'production' ? ENV.SIGN_IN_FAIL_COUNT_EX : 24 * 60 * 60;
+  private readonly signinVerificationTokenExpiry =
+    ENV.NODE_ENV === 'production' ? ENV.SIGN_VERIFICATION_TOKEN_EX : 24 * 60 * 60;
+  private readonly signinLockUntil = ENV.NODE_ENV === 'production' ? ENV.SIGNIN_LOCK_UNTIL : 6 * 60 * 60;
+  private readonly maxSigninFailures = ENV.NODE_ENV === 'production' ? ENV.MAX_SIGNIN_FAILURES : 20;
+  private readonly resetPasswordExpiry = ENV.NODE_ENV === 'production' ? ENV.RESET_PASSWORD_EX : 60 * 60;
 
   // Redis keys
-  private emailVerificationToken_RK = (hashedToken: string): string => `email-verify:token:${hashedToken}`;
-  private emailVerificationUser_RK = (userId: string): string => `email-verify:user:${userId}`;
-  private signinFailCount_RK = (userId: string) => `signin:fail-count:${userId}`;
-  private signinVerificationToken_RK = (hashedToken: string) => `signin:verify-token:${hashedToken}`;
-  private resetPasswordToken_RK = (hashedToken: string) => `reset-password:${hashedToken}`;
+  private emailVerificationTokenKey = (hashedToken: string): string => `email-verify:token:${hashedToken}`;
+  private emailVerificationUserKey = (userId: string): string => `email-verify:user:${userId}`;
+  private signinFailCountKey = (userId: string) => `signin:fail-count:${userId}`;
+  private signinVerificationTokenKey = (hashedToken: string) => `signin:verify-token:${hashedToken}`;
+  private resetPasswordTokenKey = (hashedToken: string) => `reset-password:${hashedToken}`;
 
   // REDIS methods
-  private async setVerificationTokenInRedis(token: string, userId: string, role: UserRole): Promise<void> {
+  private async setVerificationTokenInRedis(token: string, userId: string, roles: Role[]): Promise<void> {
     await redis
       .multi()
       .set(
-        this.emailVerificationToken_RK(token),
-        JSON.stringify({ userId, role }),
+        this.emailVerificationTokenKey(token),
+        JSON.stringify({ userId, roles }),
         'EX',
         this.emailVerificationTokenExpiry,
       )
-      .set(this.emailVerificationUser_RK(userId), token, 'EX', this.emailVerificationTokenExpiry)
+      .set(this.emailVerificationUserKey(userId), token, 'EX', this.emailVerificationTokenExpiry)
       .exec();
   }
 
@@ -61,14 +46,22 @@ export class AuthService {
   }
 
   // SIGNUP
-  async signup({ name, email, password }: SignupParams): Promise<SignupResult> {
-    const isExistingUser = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true },
-    });
+  async signup(input: { name: string; email: string; gender: Gender; password: string }): Promise<{
+    id: string;
+    email: string;
+    name: string;
+    roles: Role[];
+    createdAt: Date;
+  }> {
+    const { name, email, gender, password } = input;
 
+    const isExistingUser = await prisma.user.findUnique({ where: { email }, select: { id: true } });
     if (isExistingUser) {
       throw new AppError('Email already exists', 400, ErrorCode.ALREADY_EXISTS);
+    }
+
+    if (!Object.values(GENDERS).includes(gender)) {
+      throw new AppError('Invalid gender value', 400, ErrorCode.INVALID_REQUEST);
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
@@ -76,51 +69,49 @@ export class AuthService {
     const user = await prisma.user.create({
       data: {
         name,
+        gender,
         email,
         password: hashPassword,
+        roles: [ROLES.USER],
+        provider: AUTH_PROVIDERS.DEFAULT,
       },
       select: {
         id: true,
         email: true,
         name: true,
-        role: true,
+        roles: true,
         createdAt: true,
       },
     });
 
-    const verificationToken = randomToken(32);
-    const hashedVerificationToken = sha256(verificationToken);
+    const verificationToken = AppCrypto.randomToken(32);
+    const hashedVerificationToken = AppCrypto.hash(verificationToken, CRYPTO_ALGORITHMS.sha256, 'hex');
 
-    await this.setVerificationTokenInRedis(hashedVerificationToken, user.id, user.role);
+    await this.setVerificationTokenInRedis(hashedVerificationToken, user.id, user.roles);
 
     // Send email verification email
     emailService.sendVerificationEmail(email, name, verificationToken);
 
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      createdAt: user.createdAt,
-    };
+    return user;
   }
 
   // VERIFY EMAIL
-  async verifyEmail(token: string): Promise<VerifyEmailResult> {
-    const hashedToken = sha256(token);
-    const tokenKey = this.emailVerificationToken_RK(hashedToken);
+  async verifyEmail(token: string): Promise<{
+    identitySessionId: string;
+    activeSessionId: string;
+  }> {
+    const hashedToken = AppCrypto.hash(token, CRYPTO_ALGORITHMS.sha256, 'hex');
 
-    const userInfo = await redis.get(tokenKey);
-
-    if (!userInfo) {
+    const cached = await redis.get(this.emailVerificationTokenKey(hashedToken));
+    if (!cached) {
       throw new AppError('Invalid or expired verification token', 400, ErrorCode.INVALID_TOKEN);
     }
 
-    const parsed = JSON.parse(userInfo);
+    const { userId, roles } = JSON.parse(cached);
 
     const updated = await prisma.user.updateMany({
       where: {
-        id: parsed.userId,
+        id: userId,
         isEmailVerified: false,
       },
       data: {
@@ -130,7 +121,7 @@ export class AuthService {
     });
 
     // delete tokens
-    const userKey = this.emailVerificationUser_RK(parsed.userId);
+    const userKey = this.emailVerificationUserKey(userId);
     await this.delVerificationTokenInRedis(token, userKey);
 
     if (updated.count === 0) {
@@ -138,13 +129,10 @@ export class AuthService {
     }
 
     // create session
-    const identitySessionId = await sessionService.createIdentitySession(parsed.userId);
-    const activeSessionId = await sessionService.createActiveSession(parsed.userId, parsed.role);
+    const identitySessionId = await sessionService.createIdentitySession(userId);
+    const activeSessionId = await sessionService.createActiveSession(userId, roles);
 
-    return {
-      identitySessionId,
-      activeSessionId,
-    };
+    return { identitySessionId, activeSessionId };
   }
 
   // RESEND VERIFICATION EMAIL
@@ -156,7 +144,7 @@ export class AuthService {
         isEmailVerified: true,
         email: true,
         name: true,
-        role: true,
+        roles: true,
       },
     });
 
@@ -164,32 +152,40 @@ export class AuthService {
       return;
     }
 
-    const userKey = this.emailVerificationUser_RK(user.id);
+    const userKey = this.emailVerificationUserKey(user.id);
     const existingToken = await redis.get(userKey);
 
     if (existingToken) {
-      const tokenKey = this.emailVerificationToken_RK(existingToken);
+      const tokenKey = this.emailVerificationTokenKey(existingToken);
       this.delVerificationTokenInRedis(tokenKey, userKey);
     }
 
-    const verificationToken = randomToken();
-    const hashedVerificationToken = sha256(verificationToken);
+    const verificationToken = AppCrypto.randomToken(32);
+    const hashedVerificationToken = AppCrypto.hash(verificationToken, CRYPTO_ALGORITHMS.sha256, 'hex');
 
-    await this.setVerificationTokenInRedis(hashedVerificationToken, user.id, user.role);
+    await this.setVerificationTokenInRedis(hashedVerificationToken, user.id, user.roles);
 
     // Send email verification email
     emailService.sendVerificationEmail(user.email, user.name, verificationToken);
   }
 
   // SIGNIN
-  async signin({ email, password }: SigninParams): Promise<SigninResult> {
+  async signin(input: { email: string; password: string }): Promise<{
+    id: string;
+    email: string;
+    mfaEnabled: boolean;
+    identitySessionId: string | undefined;
+    activeSessionId: string | undefined;
+  }> {
+    const { email, password } = input;
+
     const user = await prisma.user.findUnique({
       where: { email },
       select: {
         id: true,
-        email: true,
         name: true,
-        role: true,
+        email: true,
+        roles: true,
         password: true,
         mfaEnabled: true,
         isEmailVerified: true,
@@ -242,7 +238,7 @@ export class AuthService {
     let identitySessionId: string | null = null;
     let activeSessionId: string | null = null;
 
-    const failureCountKey = this.signinFailCount_RK(user.id);
+    const failureCountKey = this.signinFailCountKey(user.id);
 
     if (!isPasswordValid) {
       const failureCount = await redis.incr(failureCountKey);
@@ -280,11 +276,11 @@ export class AuthService {
     // ----------------------- if mfa enabled - send email, else create new session -----------------------
 
     if (user.mfaEnabled) {
-      const verificationToken = randomToken(32);
-      const hashedVerificationToken = sha256(verificationToken);
+      const verificationToken = AppCrypto.randomToken(32);
+      const hashedVerificationToken = AppCrypto.hash(verificationToken, CRYPTO_ALGORITHMS.sha256, 'hex');
 
       await redis.set(
-        this.signinVerificationToken_RK(hashedVerificationToken),
+        this.signinVerificationTokenKey(hashedVerificationToken),
         user.id,
         'EX',
         this.signinVerificationTokenExpiry,
@@ -294,7 +290,7 @@ export class AuthService {
     } else {
       // create session
       identitySessionId = await sessionService.createIdentitySession(user.id);
-      activeSessionId = await sessionService.createActiveSession(user.id, user.role);
+      activeSessionId = await sessionService.createActiveSession(user.id, user.roles);
     }
 
     if (!identitySessionId || !activeSessionId) {
@@ -316,9 +312,14 @@ export class AuthService {
   }
 
   // VERIFY SIGNIN MFA
-  async verifySignIn(token: string): Promise<VerifySignInResult> {
-    const hashedToken = sha256(token);
-    const key = this.signinVerificationToken_RK(hashedToken);
+  async verifySignIn(token: string): Promise<{
+    id: string;
+    email: string;
+    identitySessionId: string;
+    activeSessionId: string;
+  }> {
+    const hashedToken = AppCrypto.hash(token, CRYPTO_ALGORITHMS.sha256, 'hex');
+    const key = this.signinVerificationTokenKey(hashedToken);
 
     const userId = await redis.get(key);
 
@@ -334,7 +335,7 @@ export class AuthService {
       select: {
         id: true,
         email: true,
-        role: true,
+        roles: true,
       },
     });
 
@@ -344,7 +345,7 @@ export class AuthService {
 
     // create Session
     const identitySessionId = await sessionService.createIdentitySession(user.id);
-    const activeSessionId = await sessionService.createActiveSession(user.id, user.role);
+    const activeSessionId = await sessionService.createActiveSession(user.id, user.roles);
 
     return {
       id: user.id,
@@ -365,55 +366,6 @@ export class AuthService {
     }
   }
 
-  // REFRESH ACTIVE SESSION
-  async refreshActiveSession(isid: string): Promise<string> {
-    if (!isid) {
-      throw new AppError(
-        'Identity session token is missing. Sign in again.',
-        401,
-        ErrorCode.IDENTITY_SESSION_EXPIRED,
-      );
-    }
-
-    const isidHash = sha256(isid);
-
-    const session = await prisma.identitySession.findUnique({
-      where: { token: isidHash },
-      include: {
-        user: {
-          select: {
-            id: true,
-            role: true,
-            isActive: true,
-            isLocked: true,
-          },
-        },
-      },
-    });
-
-    if (!session || !session.user) {
-      throw new AppError('Invalid session', 401, ErrorCode.UNAUTHORIZED);
-    }
-
-    // verify
-    if (!session.user.isActive) {
-      throw new AppError('Account disabled', 403, ErrorCode.FORBIDDEN);
-    }
-
-    if (session.user.isLocked) {
-      throw new AppError('Account is locked. Try again later.', 423, ErrorCode.ACCOUNT_LOCKED);
-    }
-
-    if (session.revoked || session.expiresAt.getTime() < Date.now()) {
-      throw new AppError('Session expired. Sign in again', 401, ErrorCode.UNAUTHORIZED);
-    }
-
-    // create new active session
-    const activeSessId = await sessionService.createActiveSession(session.user.id, session.user.role);
-
-    return activeSessId;
-  }
-
   // FORGOT PASSWORD
   // generates a token and send it via verified email
   // user get in to the reset password via that email link + token
@@ -427,24 +379,24 @@ export class AuthService {
       return;
     }
 
-    const resetToken = randomToken(32);
-    const hashedToken = sha256(resetToken);
+    const resetToken = AppCrypto.randomToken(32);
+    const hashedToken = AppCrypto.hash(resetToken, CRYPTO_ALGORITHMS.sha256, 'hex');
 
-    await redis.set(this.resetPasswordToken_RK(hashedToken), user.id, 'EX', this.resetPasswordExpiry);
+    await redis.set(this.resetPasswordTokenKey(hashedToken), user.id, 'EX', this.resetPasswordExpiry);
 
     try {
       await emailService.sendPasswordResetEmail(email, user.name, resetToken);
     } catch (error) {
       // If email fails, clear the reset token
-      await redis.del(this.resetPasswordToken_RK(hashedToken));
+      await redis.del(this.resetPasswordTokenKey(hashedToken));
       throw error;
     }
   }
 
   // RESET PASSWORD
   async resetPassword(token: string, newPassword: string): Promise<void> {
-    const hashedToken = sha256(token);
-    const userId = await redis.get(this.resetPasswordToken_RK(hashedToken));
+    const hashedToken = AppCrypto.hash(token, CRYPTO_ALGORITHMS.sha256, 'hex');
+    const userId = await redis.get(this.resetPasswordTokenKey(hashedToken));
 
     if (!userId) {
       throw new AppError('Invalid or expired reset token', 400, ErrorCode.INVALID_TOKEN);
@@ -481,6 +433,8 @@ export class AuthService {
       }),
     ]);
 
-    await redis.del(this.resetPasswordToken_RK(hashedToken));
+    await redis.del(this.resetPasswordTokenKey(hashedToken));
   }
 }
+
+export const authService = new AuthService();

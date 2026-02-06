@@ -39,7 +39,7 @@ const envSchema = z.object({
   SMTP_PASSWORD: process.env.NODE_ENV === 'development' ? z.string().optional() : z.string(),
   SMTP_FROM: process.env.NODE_ENV === 'development' ? z.email().optional() : z.email(),
 
-  // All expiries are in secondes
+  // Auth expiries are in secondes
   ACTIVE_SESSION_EX: z
     .string()
     .transform(Number)
@@ -67,14 +67,23 @@ const envSchema = z.object({
     }),
   SIGNIN_LOCK_UNTIL: z.string().transform(Number),
   MAX_SIGNIN_FAILURES: z.string().transform(Number),
+  RESET_PASSWORD_EX: z.string().transform(Number),
 
-  // Auth
+  // OAuth
   AUTH_ISSUER: z.url(),
   AUTH_CODE_EX: z.string().transform(Number),
   AUTH_TOKENS_EX: z.string(),
+  AUTH_REQUEST_EX: z.string(),
   KEY_ENC_SECRET: z.string().regex(/^[0-9a-f]{64}$/, {
     message: 'KEY_ENC_SECRET must be exactly 32 bytes (64 hex characters)',
   }),
+
+  // Profile
+  PROFILE_CACHE_EX: z.string().transform(Number),
+
+  // Client
+  CLIENT_CACHE_EX: z.string().transform(Number),
+  CLIENT_SECRET_KEY: z.string(),
 });
 
 export const ENV = envSchema.parse(process.env);

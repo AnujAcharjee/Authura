@@ -1,0 +1,41 @@
+<%
+  const _type = typeof type !== 'undefined' ? type : 'submit';
+  const _text = typeof text !== 'undefined' ? text : 'Submit';
+  const _variant = typeof variant !== 'undefined' ? variant : 'primary';
+  const _size = typeof size !== 'undefined' ? size : 'md';
+  const _fullWidth = typeof fullWidth !== 'undefined' ? fullWidth : false;
+  const _className = typeof className !== 'undefined' ? className : '';
+  const _name = typeof name !== 'undefined' ? name : null;
+  const _value = typeof value !== 'undefined' ? value : null;
+  const _disabled = typeof disabled !== 'undefined' ? disabled : false;
+  const _icon = typeof icon !== 'undefined' ? icon : null;
+
+  const baseClasses = 'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed';
+
+  const sizeClasses = {
+    sm: 'px-3 py-1.5 text-xs rounded-md',
+    md: 'px-4 py-2.5 text-sm rounded-lg',
+    lg: 'px-6 py-3 text-base rounded-lg'
+  };
+
+  const variantClasses = {
+    primary: 'bg-linear-to-r from-sky-500 to-sky-600 text-white hover:from-sky-600 hover:to-sky-700 focus:ring-sky-500/30 shadow-sm hover:shadow-md',
+    secondary: 'bg-white border-2 border-orange-500 text-orange-600 hover:bg-orange-50 focus:ring-orange-500/30',
+    danger: 'bg-linear-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 focus:ring-red-500/30 shadow-sm hover:shadow-md',
+    ghost: 'text-slate-600 hover:bg-slate-100 focus:ring-slate-300/30',
+    outline: 'border-2 border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50 focus:ring-slate-300/30'
+  };
+
+  const widthClass = _fullWidth ? 'w-full' : '';
+%>
+
+<button
+  type="<%= _type %>"
+  <% if (_name) { %>name="<%= _name %>"<% } %>
+  <% if (_value) { %>value="<%= _value %>"<% } %>
+  <% if (_disabled) { %>disabled<% } %>
+  class="<%= baseClasses %> <%= sizeClasses[_size] %> <%= variantClasses[_variant] %> <%= widthClass %> <%= _className %>"
+>
+  <% if (_icon) { %><%- _icon %><% } %>
+  <%= _text %>
+</button>

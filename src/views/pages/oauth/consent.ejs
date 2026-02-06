@@ -1,0 +1,118 @@
+<% layout('layouts/main') %>
+
+<%
+  const scopes = Array.isArray(scope) ? scope : [];
+  const appName = clientName.toUpperCase();   
+%>
+
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4">
+  <div class="w-full max-w-lg">
+    <!-- Main Card -->
+    <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/60 overflow-hidden">
+      
+      <!-- Header -->
+      <div class="bg-linear-to-r from-orange-500 to-orange-600 p-6 text-white">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <h1 class="text-2xl font-bold"><%= title %></h1>
+            <p class="text-white/80 text-sm">Authorization Request</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="p-6 space-y-6">
+        
+        <div class="text-center">
+          <p class="text-slate-600">
+            <%= appName %> is requesting access to your account
+          </p>
+        </div>
+
+        <!-- Client Info -->
+        <div class="space-y-3">
+          <div class="p-4 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200">
+            <p class="text-xs font-medium text-slate-600 mb-1">Client ID</p>
+            <p class="text-sm font-mono text-slate-900 break-all"><%= clientId %></p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200">
+            <p class="text-xs font-medium text-slate-600 mb-1">Requesting Domain</p>
+            <p class="text-sm font-semibold text-slate-900"><%= clientDomain %></p>
+          </div>
+        </div>
+
+        <!-- Requested Scopes -->
+        <div class="space-y-3">
+          <p class="font-semibold text-slate-900">
+            This application will be able to:
+          </p>
+
+          <% if (scopes.length === 0) { %>
+            <div class="p-4 rounded-xl bg-sky-50 border border-sky-200">
+              <p class="text-sm text-sky-800">
+                No additional permissions requested
+              </p>
+            </div>
+          <% } else { %>
+            <div class="space-y-2">
+              <% scopes.forEach(function (s) { %>
+                <div class="flex items-center gap-3 p-3 rounded-lg bg-linear-to-br from-slate-50 to-white border border-slate-200">
+                  <div class="w-2 h-2 rounded-full bg-sky-500"></div>
+                  <span class="text-sm text-slate-700"><%= s %></span>
+                </div>
+              <% }) %>
+            </div>
+          <% } %>
+        </div>
+
+        <!-- Warning -->
+        <div class="rounded-xl border-l-4 border-amber-500 bg-linear-to-r from-amber-50 to-amber-50/50 p-4">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-amber-900">Review carefully</p>
+              <p class="text-xs text-amber-800 mt-1">Make sure you trust this application before granting access</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Actions -->
+      <form method="POST" action="/api/oauth/consent" class="p-6 bg-slate-50/50 border-t border-slate-200">
+        <input type="hidden" name="request_id" value="<%= requestId %>" />
+
+        <div class="grid grid-cols-2 gap-3">
+          <%- include('../../partials/form/button', {
+            type: 'submit',
+            name: 'decision',
+            value: 'deny',
+            text: 'Deny',
+            variant: 'outline',
+            fullWidth: true,
+            size: 'lg'
+          }) %>
+
+          <%- include('../../partials/form/button', {
+            type: 'submit',
+            name: 'decision',
+            value: 'approve',
+            text: 'Allow Access',
+            variant: 'primary',
+            fullWidth: true,
+            size: 'lg'
+          }) %>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>

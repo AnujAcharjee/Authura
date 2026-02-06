@@ -1,8 +1,8 @@
 {
     "watch": ["src"],
     "ext": ".ts,.js",
-    "ignore": ["src/**/*.spec.ts", "src/**/*.test.ts"],
-    "exec": "tsx src/index.ts",
+    "ignore": ["src/**/*.spec.ts", "src/**/*.test.ts", "dist"],
+    "exec": "npx tsx src/index.ts",
     "legacyWatch": true,
     "delay": "1000",
     "polling": true

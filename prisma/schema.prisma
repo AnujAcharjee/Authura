@@ -10,10 +10,11 @@ datasource db {
 model User {
   id String @id @default(uuid())
 
-  name   String   @db.VarChar(99)
-  email  String   @unique @db.VarChar(99)
-  role   UserRole @default(USER)
+  name   String     @db.VarChar(99)
+  email  String     @unique @db.VarChar(99)
+  roles  UserRole[]
   avatar String?
+  gender Gender
 
   // Security
   isEmailVerified Boolean      @default(false)
@@ -32,6 +33,8 @@ model User {
 
   // Relations
   identitySession IdentitySession[]
+  oauthConsents   OAuthConsent[]
+  oauthClients    OAuthClient[]
 }
 
 model IdentitySession {
@@ -50,10 +53,16 @@ model IdentitySession {
 }
 
 model OAuthClient {
-  id     String @id @default(uuid())
+  id String @id @default(uuid())
+
+  // Owner
+  userId String
+
+  // App identity
+  name   String @db.VarChar(99)
   domain String @db.VarChar(255)
 
-  // OAuth identifiers
+  // Secrets
   clientSecretHash String? @db.VarChar(255)
 
   // OAuth behavior
@@ -70,9 +79,15 @@ model OAuthClient {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  oauthConsents OAuthConsent[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
   @@index([domain])
 }
 
+// JOSE
 model SigningKeys {
   id  String @id @default(uuid())
   kid String @unique
@@ -81,7 +96,7 @@ model SigningKeys {
   algorithm KeyAlgorithm
 
   privateKeyEnc Json
-  publicKey Json
+  publicKey     Json
 
   status KeyStatus
 
@@ -90,9 +105,37 @@ model SigningKeys {
   expiresAt DateTime?
 }
 
+model OAuthConsent {
+  id String @id @default(cuid())
+
+  userId   String
+  clientId String
+
+  scopes String[] // approved scopes only
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  revokedAt DateTime?
+
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client OAuthClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clientId])
+  @@index([clientId])
+}
+
+// User
+
 enum UserRole {
   ADMIN
   USER
+  DEVELOPER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
 }
 
 enum AuthProvider {
@@ -101,10 +144,14 @@ enum AuthProvider {
   GITHUB
 }
 
+// OAuth Client
+
 enum OAuthClientType {
   PUBLIC
   CONFIDENTIAL
 }
+
+// Signing Keys 
 
 enum KeyStatus {
   ACTIVE

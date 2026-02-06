@@ -1,8 +1,9 @@
 import * as jose from 'jose';
 import crypto from 'crypto';
-import prisma, { KeyAlgorithm, KeyStatus, KeyUse } from '@/config/database';
+import prisma from '@/config/database';
 import { Prisma } from 'generated/prisma';
 import { ENV } from '@/config/env';
+import { KEY_ALGORITHMS, KEY_STATUS, KEY_USE, CRYPTO_ALGORITHMS } from '@/utils/constant';
 
 type EncryptedPrivateKey = {
   data: string;
@@ -10,11 +11,18 @@ type EncryptedPrivateKey = {
   tag: string;
 };
 
-class JoseService {
-  private readonly ALG = 'RS256';
+export class JoseService {
+  private readonly ALG = KEY_ALGORITHMS.RS256;
   private readonly ENCRYPTION_KEY = Buffer.from(ENV.KEY_ENC_SECRET!, 'hex');
 
+  constructor() {
+    if (this.ENCRYPTION_KEY.length !== 32) {
+      throw new Error('KEY_ENC_SECRET must be 32 bytes (hex-encoded)');
+    }
+  }
+
   // --------------- Generate RSA signing keypair ---------------
+
   private async generateSigningKey() {
     const { privateKey, publicKey } = await jose.generateKeyPair(this.ALG, {
       modulusLength: 2048,
@@ -25,7 +33,7 @@ class JoseService {
     const publicJwk = await jose.exportJWK(publicKey);
 
     const kid = crypto
-      .createHash('sha256')
+      .createHash(CRYPTO_ALGORITHMS.sha256)
       .update(JSON.stringify(publicJwk))
       .digest('base64url')
       .slice(0, 32);
@@ -44,6 +52,7 @@ class JoseService {
   }
 
   // --------------- Encrypt private key (AES-256-GCM) ---------------
+
   private async encryptPrivateKey(privateKey: CryptoKey): Promise<EncryptedPrivateKey> {
     const pem = await jose.exportPKCS8(privateKey);
 
@@ -60,6 +69,7 @@ class JoseService {
   }
 
   // --------------- Decrypt private key (internal only) ---------------
+
   private decryptPrivateKey(enc: EncryptedPrivateKey): crypto.KeyObject {
     const decipher = crypto.createDecipheriv(
       'aes-256-gcm',
@@ -75,6 +85,7 @@ class JoseService {
   }
 
   // ---------------Initialize JWKS (first boot) ---------------
+
   async initJwks() {
     const keysCount = await prisma.signingKeys.count();
     if (keysCount >= 1) return;
@@ -89,17 +100,18 @@ class JoseService {
       data: {
         id: key.id,
         kid: key.kid,
-        use: 'SIG',
-        algorithm: KeyAlgorithm.RS256,
+        use: KEY_USE.SIG,
+        algorithm: KEY_ALGORITHMS.RS256,
         privateKeyEnc: encryptedPrivateKey,
         publicKey: publicKeyJson,
-        status: 'ACTIVE',
+        status: KEY_STATUS.ACTIVE,
         createdAt: new Date(),
       },
     });
   }
 
   // --------------- Get active private signing key ---------------
+
   private async getActiveSigningKey() {
     const key = await prisma.signingKeys.findFirst({
       where: { status: 'ACTIVE', use: 'SIG' },
@@ -119,6 +131,7 @@ class JoseService {
 
   // TODO: Rotate keys in a scheduled manner
   // --------------- Rotate signing keys (safe) ---------------
+
   async rotateSigningKey() {
     const newKey = await this.generateSigningKey();
     const encryptedPrivateKey = await this.encryptPrivateKey(newKey.privateKey);
@@ -140,7 +153,7 @@ class JoseService {
           id: newKey.id,
           kid: newKey.kid,
           use: 'SIG',
-          algorithm: KeyAlgorithm.RS256,
+          algorithm: KEY_ALGORITHMS.RS256,
           privateKeyEnc: encryptedPrivateKey,
           publicKey: publicKeyJson,
           status: 'ACTIVE',
@@ -151,6 +164,7 @@ class JoseService {
   }
 
   // --------------- JWKS for public endpoint ---------------
+
   async getJwks() {
     const keys = await prisma.signingKeys.findMany({
       where: {
@@ -162,12 +176,13 @@ class JoseService {
       },
     });
 
-    return {
+    return Object.freeze({
       keys: keys.map((k) => k.publicKey),
-    };
+    });
   }
 
   // --------------- Sign JWT (Access / ID token) ---------------
+
   async signJwt(
     payload: Record<string, any>,
     options: {
@@ -185,6 +200,41 @@ class JoseService {
       .setIssuedAt()
       .setExpirationTime(options.expiresIn)
       .sign(privateKey);
+  }
+
+  // --------------- Verify JWT ---------------
+
+  private resolveSigningKey = async (header: jose.JWTHeaderParameters) => {
+    if (!header.kid) throw new Error('Missing kid');
+
+    if (header.alg !== KEY_ALGORITHMS.RS256) {
+      throw new Error('Invalid signing algorithm');
+    }
+
+    const key = await prisma.signingKeys.findUnique({
+      where: { kid: header.kid },
+    });
+
+    if (!key || key.status === KEY_STATUS.REVOKED) {
+      throw new Error('Invalid signing key');
+    }
+
+    return jose.importJWK(key.publicKey as jose.JWK, key.algorithm);
+  };
+
+  async verifyJwt(token: string, audience: string) {
+    const { payload } = await jose.jwtVerify(token, this.resolveSigningKey, {
+      issuer: ENV.AUTH_ISSUER,
+      audience,
+    });
+
+    return {
+      sub: String(payload.sub),
+      aud: Array.isArray(payload.aud) ? payload.aud[0] : String(payload.aud),
+      scope: typeof payload.scope === 'string' ? payload.scope : '',
+      exp: payload.exp,
+      iss: payload.iss,
+    };
   }
 }
 

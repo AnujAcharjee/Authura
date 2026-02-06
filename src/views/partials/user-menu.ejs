@@ -1,0 +1,24 @@
+<%
+  const avatar = user.avatar 
+    ? user.avatar 
+    : user.gender === 'MALE' 
+      ? '/images/avatar-m-placeholder.jpg' 
+      : '/images/avatar-f-placeholder.png';
+%>
+
+<div class="relative group">
+  <button class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+    <img src="<%= avatar %>" alt="<%= user.name %>" class="w-8 h-8 rounded-full object-cover ring-2 ring-orange-500/20" />
+    <span class="text-sm font-medium text-slate-700 hidden sm:block"><%= user.name %></span>
+  </button>
+  
+  <!-- Dropdown Menu (can be enhanced with JavaScript) -->
+  <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1">
+    <a href="/user" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Dashboard</a>
+    <form method="POST" action="/api/auth/signout">
+      <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+        Sign out
+      </button>
+    </form>
+  </div>
+</div>

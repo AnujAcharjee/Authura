@@ -1,6 +1,7 @@
 import { ENV } from '@/config/env';
+import { logger } from '@/config/logger';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient, UserRole, AuthProvider, OAuthClientType, KeyAlgorithm, KeyStatus, KeyUse } from '../../generated/prisma';
+import { PrismaClient } from '../../generated/prisma';
 
 const connectionString = `${ENV.NEON_PG_DATABASE_URL}`;
 
@@ -16,7 +17,7 @@ const handleShutdown = async () => {
   if (isShuttingDown) return;
   isShuttingDown = true;
 
-  console.log('Shutting down database connection');
+  logger.info('Shutting down database connection');
   await prisma.$disconnect();
 };
 
@@ -24,5 +25,3 @@ process.on('SIGTERM', handleShutdown);
 process.on('SIGINT', handleShutdown);
 
 export default prisma;
-
-export { UserRole,  AuthProvider, OAuthClientType, KeyAlgorithm, KeyStatus, KeyUse};
