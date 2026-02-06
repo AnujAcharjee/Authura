@@ -29,13 +29,21 @@ router.post('/refresh-session', controller.refreshActiveSession);
 router.post('/signout', Authentication.ssr, Authorize.role([ROLES.USER]), controller.signout);
 
 router.post(
-  '/forget-password',
+  '/mfa',
+  Authentication.ssr,
+  Authorize.role([ROLES.USER]),
+  validateRequest(AuthZSchema.manageMfaSchema),
+  controller.manageMfa,
+);
+
+router.post(
+  '/forgot-password',
   validateRequest(AuthZSchema.forgotPasswordSchema),
   controller.forgotPassword,
 );
 
-router.get(
-  '/reset-password/:token',
+router.post(
+  '/reset-password',
   validateRequest(AuthZSchema.resetPasswordSchema),
   controller.resetPassword,
 );

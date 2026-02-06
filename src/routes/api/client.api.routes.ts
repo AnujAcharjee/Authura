@@ -47,6 +47,15 @@ router
   );
 
 router.post(
+  '/:client_id/activate',
+  Authentication.ssr,
+  Authorize.role([ROLES.USER, ROLES.DEVELOPER]),
+  Authorize.clientOwnership,
+  validateRequest(ClientZSchema.clientIdSchema),
+  controller.activate,
+);
+
+router.post(
   '/:client_id/ruri',
   Authentication.ssr,
   Authorize.role([ROLES.USER, ROLES.DEVELOPER]),

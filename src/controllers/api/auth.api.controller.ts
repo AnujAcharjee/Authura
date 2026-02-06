@@ -59,7 +59,6 @@ export class AuthApiController extends BaseController {
     });
   };
 
-  // TODO: fix the email in req
   resendVerificationEmail = (req: Request, res: Response, next: NextFunction): void => {
     this.handleRequest(req, res, next, async () => {
       const { email } = req.query;
@@ -86,7 +85,7 @@ export class AuthApiController extends BaseController {
       let message: string, successRedirect: string;
       if (!data?.mfaEnabled && data?.identitySessionId && data?.activeSessionId) {
         await setSessionCookies(res, data?.identitySessionId, data?.activeSessionId);
-        message = `User signed-in successfully`;
+        message = `Signed-in successfully`;
         successRedirect = '/account';
       } else {
         message = `Sign-in verification email has been sent to the registered email address`;
@@ -111,7 +110,7 @@ export class AuthApiController extends BaseController {
 
       return {
         data: { id: data.id, email: data.email },
-        message: `User signed-in successfully`,
+        message: `Signed-in successfully`,
         successRedirect: '/account',
       };
     });
@@ -152,20 +151,46 @@ export class AuthApiController extends BaseController {
 
       await this.authService.forgotPassword(email);
 
-      return { message: 'Password reset email sent' };
+      const redirect =
+        typeof req.query.redirect === 'string' && req.query.redirect.startsWith('/')
+          ? req.query.redirect
+          : '/forgot-password';
+
+      return {
+        message: 'Password reset email sent',
+        successRedirect: redirect,
+      };
     });
   };
 
   resetPassword = (req: Request, res: Response, next: NextFunction): void => {
     this.handleRequest(req, res, next, async () => {
-      const { token } = req.params;
-      const { password } = req.body;
+      const { token, password } = req.body;
 
       await this.authService.resetPassword(token, password);
 
       return {
         message: 'Password reset successfully',
         successRedirect: '/account',
+      };
+    });
+  };
+
+  manageMfa = (req: Request, res: Response, next: NextFunction): void => {
+    this.handleRequest(req, res, next, async () => {
+      const { action } = req.body;
+      const enable = action === 'enable';
+
+      await this.authService.manageMfa(req.user.id, enable);
+
+      const redirect =
+        typeof req.query.redirect === 'string' && req.query.redirect.startsWith('/')
+          ? req.query.redirect
+          : '/account';
+
+      return {
+        message: `Two-factor authentication ${enable ? 'enabled' : 'disabled'} successfully`,
+        successRedirect: redirect,
       };
     });
   };

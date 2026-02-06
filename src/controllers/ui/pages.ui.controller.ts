@@ -64,7 +64,12 @@ export class PagesUiController extends BaseController {
   renderResetPasswordPage = (req: Request, res: Response, next: NextFunction) =>
     this.renderPage(req, res, next, 'pages/auth/reset-password', {
       title: 'Reset Password',
-      resetToken: typeof req.params.resetToken === 'string' ? req.params.resetToken : undefined,
+      resetToken:
+        typeof req.params.token === 'string'
+          ? req.params.token
+          : typeof req.query.token === 'string'
+            ? req.query.token
+            : undefined,
     });
 
   // ---------- OAUTH ----------
@@ -77,7 +82,7 @@ export class PagesUiController extends BaseController {
       async () => {
         const requestId = req.query.request_id;
         if (typeof requestId !== 'string') {
-          throw new AppError('Missing request_id', 400, ErrorCode.INVALID_INPUT, false);
+          throw new AppError('Missing request_id', 400, ErrorCode.INVALID_INPUT);
         }
 
         const authReq = await this.oauthService.getAuthorizationRequest(requestId);
@@ -89,7 +94,7 @@ export class PagesUiController extends BaseController {
           clientId: authReq.clientId,
           clientName: client.name,
           clientDomain: client.domain,
-          scope: authReq.scope,
+          scope: authReq.scopes,
         });
       },
       { raw: true },
@@ -120,6 +125,8 @@ export class PagesUiController extends BaseController {
           updatedAtFormatted: new Date(user.updatedAt).toLocaleDateString(),
           oauthConsents,
           clients,
+          error: typeof req.query.error === 'string' ? req.query.error : undefined,
+          success: typeof req.query.success === 'string' ? req.query.success : undefined,
         });
       },
       { raw: true },
@@ -146,13 +153,15 @@ export class PagesUiController extends BaseController {
           createdAtFormatted: new Date(client.createdAt).toLocaleDateString(),
           updatedAtFormatted: new Date(client.updatedAt).toLocaleDateString(),
           revokedAtFormatted: client.revokedAt ? new Date(client.revokedAt).toLocaleDateString() : null,
+          error: typeof req.query.error === 'string' ? req.query.error : undefined,
+          success: typeof req.query.success === 'string' ? req.query.success : undefined,
         });
       },
       { raw: true },
     );
 
   renderAddClient = (req: Request, res: Response, next: NextFunction) =>
-    this.renderPage(req, res, next, 'pages/app/add-client', {
+    this.renderPage(req, res, next, 'pages/app/forms/add-client', {
       title: 'Add Client',
     });
 

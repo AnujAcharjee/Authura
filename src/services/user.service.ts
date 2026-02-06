@@ -24,6 +24,7 @@ export type UserView = {
   isEmailVerified: boolean;
   emailVerifiedAt: Date | null;
   mfaEnabled: boolean;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -52,6 +53,7 @@ export class UserService {
         isEmailVerified: true,
         emailVerifiedAt: true,
         mfaEnabled: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -87,6 +89,7 @@ export class UserService {
           isEmailVerified: true,
           emailVerifiedAt: true,
           mfaEnabled: true,
+          isActive: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -117,6 +120,32 @@ export class UserService {
     if (result.count === 0) {
       throw new AppError('User already deactivated or not found', 400, ErrorCode.INVALID_REQUEST);
     }
+
+    await prisma.identitySession.updateMany({
+      where: { userId, revoked: false },
+      data: { revoked: true, lastUsedAt: new Date() },
+    });
+
+    await redis.del(this.profileKey(userId));
+  }
+
+  async activate(userId: string): Promise<void> {
+    const result = await prisma.user.updateMany({
+      where: {
+        id: userId,
+        isActive: false,
+      },
+      data: {
+        isActive: true,
+        updatedAt: new Date(),
+      },
+    });
+
+    if (result.count === 0) {
+      throw new AppError('User already active or not found', 400, ErrorCode.INVALID_REQUEST);
+    }
+
+    await redis.del(this.profileKey(userId));
   }
 
   async delete(userId: string): Promise<void> {
@@ -136,6 +165,8 @@ export class UserService {
       prisma.oAuthClient.deleteMany({ where: { userId } }),
       prisma.user.delete({ where: { id: userId } }),
     ]);
+
+    await redis.del(this.profileKey(userId));
   }
 }
 

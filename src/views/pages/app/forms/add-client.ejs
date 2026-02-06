@@ -5,16 +5,16 @@
     <!-- Main Card -->
     <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/60 p-8 sm:p-10">
 
-      <%- include("../../partials/auth/header", {
+      <%- include("../../../partials/auth/header", {
         title: "Create New Application",
         subtitle: "Set up OAuth credentials and configure access for your application."
       }) %>
 
-      <%- include("../../partials/auth/alert", {success, error}) %>
+      <%- include("../../../partials/auth/alert", {success, error}) %>
 
       <form method="POST" action="/api/client" class="space-y-6 mt-8">
 
-        <%- include("../../partials/form/input", {
+        <%- include("../../../partials/form/input", {
           id: "name",
           name: "name",
           type: "text",
@@ -25,7 +25,7 @@
           helperText: "A friendly name to identify your application"
         }) %>
 
-        <%- include("../../partials/form/input", {
+        <%- include("../../../partials/form/input", {
           id: "slug",
           name: "slug",
           type: "text",
@@ -36,7 +36,7 @@
           helperText: "This will be used as: myapp.authura.com"
         }) %>
 
-        <%- include("../../partials/form/select", {
+        <%- include("../../../partials/form/select", {
           id: "client_type",
           name: "client_type",
           label: "Client Type",
@@ -48,7 +48,7 @@
           helperText: "Determines authentication method and security requirements"
         }) %>
 
-        <%- include("../../partials/form/input", {
+        <%- include("../../../partials/form/input", {
           id: "redirect_uri",
           name: "redirect_uri",
           type: "url",
@@ -77,7 +77,7 @@
             Cancel
           </a>
 
-          <%- include("../../partials/form/button", {
+          <%- include("../../../partials/form/button", {
             type: "submit",
             text: "Create Application",
             variant: "primary",

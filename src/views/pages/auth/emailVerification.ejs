@@ -1,32 +1,40 @@
 <% layout("layouts/main") %>
 
-<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4">
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
   <div class="w-full max-w-md">
-    <!-- Main Card -->
-    <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/60 p-8 sm:p-10 text-center">
+    <div class="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl border border-slate-200 p-8 sm:p-10 text-center">
 
-      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-sky-500 to-sky-600 shadow-lg shadow-sky-500/30 mb-6">
-        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <!-- Icon -->
+      <div class="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-orange-100">
+        <svg class="h-7 w-7 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
       </div>
 
-      <h1 class="text-3xl font-bold text-slate-900 mb-3">
+      <!-- Title -->
+      <h1 class="text-2xl font-semibold text-slate-900">
         Verify your email
       </h1>
 
-      <p class="text-slate-600 mb-8">
-        We've sent a verification link to your email address. Please check your inbox and click the link to verify your account.
+      <!-- Description -->
+      <p class="mt-2 text-sm text-slate-600">
+        We’ve sent a verification link to your email.
+        Click the link to activate your account.
       </p>
 
-      <%- include("../../partials/auth/alert", { success, error }) %>
+      <!-- Alerts -->
+      <div class="mt-6">
+        <%- include("../../partials/auth/alert", { success, error }) %>
+      </div>
 
-      <div class="space-y-4">
-        <p class="text-sm text-slate-500">
-          Didn't receive the email?
+      <!-- Resend -->
+      <div class="mt-6 space-y-3">
+        <p class="text-xs text-slate-500">
+          Didn’t receive the email?
         </p>
-        
-        <form method="POST" action="/api/auth/resend-verification">
+
+        <form method="GET" action="/api/auth/email-verification">
+          <input type="hidden" name="email" value="<%= typeof email === 'string' ? email : '' %>">
           <%- include("../../partials/form/button", {
             type: "submit",
             text: "Resend verification email",
@@ -36,8 +44,9 @@
         </form>
       </div>
 
-      <div class="mt-8 pt-6 border-t border-slate-200">
-        <a href="/signin" class="text-sm font-medium text-transparent bg-clip-text bg-linear-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600">
+      <!-- Footer -->
+      <div class="mt-8 border-t border-slate-200 pt-5">
+        <a href="/signin" class="text-sm font-medium text-slate-600 hover:text-slate-900 transition">
           Back to sign in
         </a>
       </div>

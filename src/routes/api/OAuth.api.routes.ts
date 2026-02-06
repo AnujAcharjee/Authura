@@ -12,7 +12,6 @@ const router = Router();
 const controller = new OAuthApiController(oauthService, userService);
 
 // TODO: implement isolated router for every client
-// TODO: ensure a valid client or not in issue token
 
 /**
  * '/authorize (GET)' : Client send req to Authura

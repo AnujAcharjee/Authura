@@ -21,6 +21,8 @@ router.get('/signup/verify', pagesController.renderEmailVerificationPage);
 router.get('/signin', pagesController.renderSigninPage);
 router.get('/forgot-password', pagesController.renderForgotPasswordPage);
 router.get('/reset-password', pagesController.renderResetPasswordPage);
+router.get('/reset-password/:token', pagesController.renderResetPasswordPage);
+router.get('/user/password', pagesController.renderForgotPasswordPage);
 
 // ------------------- OAuth -------------------
 

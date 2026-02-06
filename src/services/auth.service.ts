@@ -205,8 +205,6 @@ export class AuthService {
     }
 
     // ----------------------- Handel locked user -----------------------
-    // if locked throw err
-    // else unlock
 
     if (user.isLocked) {
       if (user.lockedUntil && user.lockedUntil > new Date()) {
@@ -235,8 +233,8 @@ export class AuthService {
     // increase failed login count
     // if exceed limit lock  user
 
-    let identitySessionId: string | null = null;
-    let activeSessionId: string | null = null;
+    let identitySessionId: string | undefined = undefined;
+    let activeSessionId: string | undefined = undefined;
 
     const failureCountKey = this.signinFailCountKey(user.id);
 
@@ -291,15 +289,15 @@ export class AuthService {
       // create session
       identitySessionId = await sessionService.createIdentitySession(user.id);
       activeSessionId = await sessionService.createActiveSession(user.id, user.roles);
-    }
 
-    if (!identitySessionId || !activeSessionId) {
-      throw new AppError(
-        'AuthService:signin: identity & active session ids are null',
-        500,
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        false,
-      );
+      if (!identitySessionId || !activeSessionId) {
+        throw new AppError(
+          'Identity & Active session ids are null',
+          500,
+          ErrorCode.INTERNAL_SERVER_ERROR,
+          false,
+        );
+      }
     }
 
     return {
@@ -434,6 +432,28 @@ export class AuthService {
     ]);
 
     await redis.del(this.resetPasswordTokenKey(hashedToken));
+  }
+
+  // MANAGE MFA
+  async manageMfa(userId: string, enable: boolean): Promise<void> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, isActive: true },
+    });
+
+    if (!user || !user.isActive) {
+      throw new AppError('Account disabled', 403, ErrorCode.FORBIDDEN);
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        mfaEnabled: enable,
+        updatedAt: new Date(),
+      },
+    });
+
+    await redis.del(`profile:${userId}`);
   }
 }
 

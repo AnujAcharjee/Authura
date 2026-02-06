@@ -45,6 +45,19 @@ export const errorMiddleware: ErrorRequestHandler = (err, req, res, _next): void
 
   // HTML response
   if (acceptsHtml) {
+    const redirectParam =
+      typeof req.query.redirect === 'string' && req.query.redirect.startsWith('/')
+        ? req.query.redirect
+        : undefined;
+
+    if (redirectParam) {
+      return res.redirect(`${redirectParam}?error=${encodeURIComponent(message)}`);
+    }
+
+    if (req.path.startsWith('/api/auth/verify-email/')) {
+      return res.redirect(`/signup/verify?error=${encodeURIComponent(message)}`);
+    }
+
     const redirectTarget = AUTH_UI_REDIRECT_MAP[req.path];
 
     if (redirectTarget) {

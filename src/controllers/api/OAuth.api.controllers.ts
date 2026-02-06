@@ -1,11 +1,8 @@
-import { AppError } from '@/utils/appError';
-import { ErrorCode } from '@/utils/errorCodes';
 import { BaseController } from '@/controllers/base.controller';
 import { CRYPTO_ALGORITHMS, SCOPES, type CryptoAlgorithm } from '@/utils/constant';
 import type { Request, Response, NextFunction } from 'express';
 import type { OAuthService } from '@/services/OAuth.service';
 import type { UserService } from '@/services/user.service';
-import type { ClientService } from '@/services/client.service';
 
 /**
  * AUTHORIZE :
@@ -31,8 +28,6 @@ export class OAuthApiController extends BaseController {
   ) {
     super();
   }
-
-  // TODO: fix redirects
 
   // ---------------- AUTHORIZE ----------------
   // 'OAuth/authorize' is NOT an API endpoint -> It is a browser flow endpoint
@@ -79,6 +74,7 @@ export class OAuthApiController extends BaseController {
 
   // ---------------- CONSENT SUBMIT ----------------
 
+  // TODO: Show some UI message or redirect user back to client; for now neither happens
   handleConsentSubmit = (req: Request, res: Response, next: NextFunction) => {
     return this.handleRequest(
       req,

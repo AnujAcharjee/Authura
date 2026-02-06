@@ -29,5 +29,6 @@ router
   .delete(Authentication.ssr, Authorize.role([ROLES.USER]), controller.delete);
 
 router.post('/deactivate', Authentication.ssr, Authorize.role([ROLES.USER]), controller.deactivate);
+router.post('/activate', Authentication.ssr, Authorize.role([ROLES.USER]), controller.activate);
 
 export default router;

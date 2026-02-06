@@ -247,6 +247,7 @@ export class ClientService {
       throw new AppError('Client not found', 404, ErrorCode.NOT_FOUND);
     }
 
+    await redis.del(this.clientCacheKey(clientId));
     return client;
   }
 
@@ -286,6 +287,13 @@ export class ClientService {
     if (deleted.count === 0) {
       throw new AppError('Client not found', 404, ErrorCode.NOT_FOUND);
     }
+
+    await redis.del(this.clientCacheKey(clientId));
+  }
+
+  // -------- ACTIVATE --------
+  async activate(clientId: string) {
+    await this.update(clientId, { isActive: true, revokedAt: undefined });
   }
 
   // ---------------- ROTATE SECRET ----------------

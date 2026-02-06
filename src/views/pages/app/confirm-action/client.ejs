@@ -4,7 +4,9 @@
   const confirmText =
     action === 'delete'
       ? 'Yes, Delete Application'
-      : 'Yes, Deactivate Application';
+      : action === 'activate'
+        ? 'Yes, Activate Application'
+        : 'Yes, Deactivate Application';
 %>
 
 <div class="max-w-3xl mx-auto py-12 space-y-8">
@@ -30,7 +32,7 @@
 
       <div>
         <h1 class="text-2xl font-bold text-red-900">
-          <%= action === 'delete' ? 'Delete Application' : 'Deactivate Application' %>
+          <%= action === 'delete' ? 'Delete Application' : action === 'activate' ? 'Activate Application' : 'Deactivate Application' %>
         </h1>
         <p class="text-sm text-red-700">
           This action requires explicit confirmation
@@ -48,6 +50,10 @@
       <p class="text-sm text-red-800">
         Deleting this application is <strong>permanent</strong>.
         All client credentials, redirect URIs, and secrets will be removed and cannot be recovered.
+      </p>
+      <% } else if (action === 'activate') { %>
+      <p class="text-sm text-red-800">
+        Activating this application will re-enable OAuth authorization and token requests.
       </p>
       <% } else { %>
       <p class="text-sm text-red-800">
@@ -73,7 +79,7 @@
       </a>
 
       <!-- Confirm -->
-      <form method="POST" action="/api/client/<%= clientId %>?_method=<%= action === 'delete' ? 'DELETE' : 'PUT' %>">
+      <form method="POST" action="/api/client/<%= clientId %><%= action === 'delete' ? '?_method=DELETE' : action === 'activate' ? '/activate' : '?_method=PUT' %>">
         <%- include("../../../partials/form/button", {
           type: "submit",
           text: confirmText,

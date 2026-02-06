@@ -167,7 +167,7 @@ class EmailService {
   }
 
   async sendPasswordResetEmail(to: string, name: string, resetToken: string): Promise<void> {
-    const resetUrl = `${ENV.FRONTEND_URL}/reset-password/:${resetToken}`;
+    const resetUrl = `${ENV.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
     try {
       const info = await this.transporter.sendMail({
@@ -181,6 +181,7 @@ class EmailService {
         context: 'EmailService.sendPasswordResetEmail',
         to,
         messageId: info.messageId,
+        previewUrl: ENV.NODE_ENV === 'development' ? nodemailer.getTestMessageUrl(info) : undefined,
       });
     } catch (error) {
       logger.error('Failed to send password reset email', {

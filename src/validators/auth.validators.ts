@@ -43,11 +43,15 @@ export class AuthZSchema {
   });
 
   static resetPasswordSchema = z.object({
-    params: z.object({
-      token: UtilFields.tokenField('Reset link'),
-    }),
     body: z.object({
+      token: UtilFields.tokenField('Reset link'),
       password: UtilFields.passwordField,
+    }),
+  });
+
+  static manageMfaSchema = z.object({
+    body: z.object({
+      action: z.enum(['enable', 'disable']),
     }),
   });
 }

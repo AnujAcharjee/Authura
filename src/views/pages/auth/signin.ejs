@@ -12,6 +12,11 @@
 
       <%- include("../../partials/auth/alert", {success, error}) %>
 
+      <% if (success === "Sign-in verification email has been sent to the registered email address") { %>
+        <div class="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-900">
+          Check your email for the verification link to complete sign in.
+        </div>
+      <% } else { %>
       <form method="POST" action="/api/auth/signin" class="space-y-5">
 
         <%- include("../../partials/form/input", {
@@ -56,6 +61,7 @@
         </div>
 
       </form>
+      <% } %>
 
       <%- include("../../partials/auth/footer", {
         text: "Don't have an account?",

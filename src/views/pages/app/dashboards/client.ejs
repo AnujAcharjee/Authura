@@ -31,6 +31,61 @@
     </a>
   </div>
 
+  <!-- Page Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-slate-900">Application Dashboard</h1>
+      <p class="text-slate-600 mt-1">Manage your OAuth application settings</p>
+    </div>
+  </div>
+
+  <% if (typeof error === "string" && error) { %>
+    <div class="mb-6 rounded-xl border-l-4 border-red-500 bg-linear-to-r from-red-50 to-red-50/50 p-4 shadow-sm animate-slideIn" role="alert">
+      <div class="flex items-start gap-3">
+        <div class="shrink-0">
+          <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <p class="font-semibold text-red-800 text-sm">Error</p>
+          <p class="text-sm text-red-700 mt-1"><%= error %></p>
+        </div>
+      </div>
+    </div>
+  <% } else if (typeof success === "string" && success) { %>
+    <div class="mb-6 rounded-xl border-l-4 border-green-500 bg-linear-to-r from-green-50 to-green-50/50 p-4 shadow-sm animate-slideIn" role="alert">
+      <div class="flex items-start gap-3">
+        <div class="shrink-0">
+          <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <p class="font-semibold text-green-800 text-sm">Success</p>
+          <p class="text-sm text-green-700 mt-1"><%= success %></p>
+        </div>
+      </div>
+    </div>
+  <% } %>
+
+  <style>
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-slideIn {
+      animation: slideIn 0.3s ease-out;
+    }
+  </style>
+
   <!-- App Overview -->
   <section class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-md border border-white/60 p-6">
     <div class="flex items-center justify-between mb-6">
@@ -93,7 +148,7 @@
 
     <div class="space-y-6">
       <!-- Client Type -->
-      <div class="space-y-2">
+      <div class="space-y-4">
         <label class="text-sm font-medium text-slate-700">Client Type</label>
         <div class="p-4 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200">
           <p class="font-semibold text-slate-900"><%= client.clientType %></p>
@@ -102,7 +157,7 @@
       </div>
 
       <!-- PKCE -->
-      <div class="space-y-2">
+      <div class="space-y-4">
         <label class="text-sm font-medium text-slate-700">PKCE (Proof Key for Code Exchange)</label>
         <div class="p-4 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200">
           <div class="flex items-center gap-2">
@@ -119,7 +174,7 @@
       </div>
 
       <!-- Client Secret -->
-      <div class="space-y-3">
+      <div class="space-y-4">
         <label class="text-sm font-medium text-slate-700">Client Secret</label>
 
         <% if (client.client_secret) { %>
@@ -266,14 +321,19 @@
     <div class="space-y-3">
       <% if (client.isActive) { %>
       <div>
-        <a href="/client/<%= client.id %>/deactivate?name=<%= client.name %>" class="text-sm text-red-700 hover:text-red-900 font-medium hover:underline">
+        <a href="/client/<%= client.id %>/deactivate?name=<%= encodeURIComponent(client.name) %>" class="text-sm text-red-700 hover:text-red-900 font-medium hover:underline">
           Disable Application
         </a>
       </div>
-
+      <% } else { %>
+      <div>
+        <a href="/client/<%= client.id %>/activate?name=<%= encodeURIComponent(client.name) %>" class="text-sm text-sky-500 hover:text-green-900 font-medium hover:underline">
+          Activate Application
+        </a>
+      </div>
       <% } %>
       <div>
-        <a href="/client/<%= client.id %>/delete" class="text-sm text-red-700 hover:text-red-900 font-medium hover:underline">
+        <a href="/client/<%= client.id %>/delete?name=<%= encodeURIComponent(client.name) %>" class="text-sm text-red-700 hover:text-red-900 font-medium hover:underline">
           Delete Application
         </a>
       </div>

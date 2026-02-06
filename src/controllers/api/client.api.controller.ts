@@ -116,7 +116,6 @@ export class ClientController extends BaseController {
 
   // -------------------- GET CLIENT -------------------
 
-  // TODO: check the client belongs to the user or not - middleware
   getClient = (req: Request, res: Response, next: NextFunction): void => {
     this.handleRequest(req, res, next, async () => {
       const { client_id } = req.params;
@@ -168,6 +167,18 @@ export class ClientController extends BaseController {
 
       return {
         message: 'Client deactivated successfully',
+        successRedirect: `/client/${req.params.client_id}`,
+      };
+    });
+  };
+
+  // -------- ACTIVATE --------
+  activate = (req: Request, res: Response, next: NextFunction) => {
+    this.handleRequest(req, res, next, async () => {
+      await this.clientService.activate(req.params.client_id);
+
+      return {
+        message: 'Client activated successfully',
         successRedirect: `/client/${req.params.client_id}`,
       };
     });
