@@ -9,32 +9,36 @@ import {
 
 class EmailService {
   private transporter!: nodemailer.Transporter;
-  private readonly fromAddress = ENV.SMTP_FROM || 'noreply@example.com';
+  private readonly fromAddress: string;
   private initialized = false;
+  private initPromise: Promise<void> | null = null;
 
   constructor() {
-    // logger.info('Using SMTP configuration', {
-    //   context: 'EmailService.constructor',
-    //   host: ENV.SMTP_HOST,
-    // });
+    logger.info('Using SMTP configuration', {
+      context: 'EmailService.constructor',
+      host: ENV.SMTP_HOST,
+    });
 
-    // Add email template precompilation
+    this.fromAddress = ENV.SMTP_FROM ?? 'authura@localhost';
     this.precompileTemplates();
-
-    // Add connection testing
-    // this.testConnection();
   }
 
   async init() {
     if (this.initialized) return;
+    if (this.initPromise) return this.initPromise;
 
-    if (ENV.NODE_ENV === 'development') {
-      await this.initEthereal();
-    } else {
-      await this.initProductionSMTP();
-    }
+    this.initPromise = (async () => {
+      if (ENV.NODE_ENV === 'development') {
+        await this.initEthereal();
+      } else {
+        await this.initProductionSMTP();
+      }
 
-    this.initialized = true;
+      this.initialized = true;
+      this.initPromise = null;
+    })();
+
+    return this.initPromise;
   }
 
   // -----------------------
@@ -51,6 +55,8 @@ class EmailService {
         pass: testAccount.pass,
       },
     });
+
+    await this.transporter.verify();
 
     logger.info('Using Ethereal SMTP (development)', {
       context: 'EmailService.initEthereal',
@@ -70,41 +76,29 @@ class EmailService {
         user: ENV.SMTP_USER,
         pass: ENV.SMTP_PASSWORD,
       },
+      requireTLS: ENV.SMTP_PORT === 587,
       tls: {
         rejectUnauthorized: true,
       },
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 10_000,
     });
 
-    try {
-      await this.transporter.verify();
-      logger.info('SMTP connection verified', {
-        context: 'EmailService.initProductionSMTP',
-        host: ENV.SMTP_HOST,
-      });
-    } catch (error) {
-      logger.error('SMTP verification failed', {
-        context: 'EmailService.initProductionSMTP',
-        error,
-      });
-      throw error;
-    }
-  }
+    await this.transporter.verify();
 
-  private async testConnection() {
-    try {
-      await this.transporter.verify();
-      logger.info('SMTP connection verified');
-    } catch (error) {
-      logger.error('SMTP connection failed', { error });
-    }
+    logger.info('Production SMTP verified', {
+      context: 'EmailService.initProductionSMTP',
+      host: ENV.SMTP_HOST,
+    });
   }
 
   private precompileTemplates() {
     try {
       // Pre-compile by running once
-      getEmailVerificationTemplate('test', 'test');
-      getPasswordResetEmailTemplate('test', 'test');
-      getSignInVerificationTemplate('test', 'test');
+      getEmailVerificationTemplate('test', 'test_url');
+      getPasswordResetEmailTemplate('test', 'test_url');
+      getSignInVerificationTemplate('test', 'test_url');
 
       logger.info('Email templates precompiled successfully');
     } catch (error) {
