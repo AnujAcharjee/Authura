@@ -13,6 +13,7 @@ const pagesController = new PagesUiController(userService, clientService, oauthS
 // ------------------- Landing -------------------
 
 router.get('/', pagesController.renderLandingPage);
+router.get('/docs', pagesController.renderOAuthDocsPage);
 
 // ------------------- Auth -------------------
 

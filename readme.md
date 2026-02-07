@@ -1,12 +1,10 @@
-# Authura-IdP
+# Authura (OAuth 2.0 & OpenID Connect)
 
-Authura-IdP is a custom-built Identity Provider (IdP) for handling authentication and authorization in modern applications. It follows OAuth 2.0 and OpenID Connect–style flows to provide secure identity management and SSO capabilities.
+Authura is an OAuth 2.0 and OpenID Connect identity provider that enables
+secure authentication and authorization for web and backend applications.
 
-## Features
-- Centralized user authentication
-- OAuth 2.0 / OIDC-inspired flows
-- Session and token-based auth
-- SSO-ready architecture
-
-## Purpose
-A self-hosted, extensible authentication service built without relying on third-party IdP platforms.
+This documentation explains how to:
+- Create OAuth clients
+- Authenticate users using OIDC
+- Exchange authorization codes for tokens
+- Create application sessions securely

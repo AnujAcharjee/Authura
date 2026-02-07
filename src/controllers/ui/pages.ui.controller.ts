@@ -1,4 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
+import fs from 'fs/promises';
+import path from 'path';
 import { BaseController } from '@/controllers/base.controller';
 import type { UserService, UserView } from '@/services/user.service';
 import type { AllClientsView, ClientService } from '@/services/client.service';
@@ -106,6 +108,25 @@ export class PagesUiController extends BaseController {
     this.renderPage(req, res, next, 'pages/app/landing', {
       title: 'Landing Page',
     });
+
+  // ---------- DOCS ----------
+
+  renderOAuthDocsPage = (req: Request, res: Response, next: NextFunction) =>
+    this.handleRequest(
+      req,
+      res,
+      next,
+      async () => {
+        const docPath = path.join(process.cwd(), 'docs', 'oauth-api.md');
+        const docContent = await fs.readFile(docPath, 'utf8');
+
+        res.render('pages/docs/oauth-api', {
+          title: 'OAuth and OIDC Docs',
+          docContent,
+        });
+      },
+      { raw: true },
+    );
 
   renderAccountDashboard = (req: Request, res: Response, next: NextFunction) =>
     this.handleRequest(

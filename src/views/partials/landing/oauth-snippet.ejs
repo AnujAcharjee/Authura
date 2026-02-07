@@ -1,0 +1,89 @@
+<section id="oauth-flow" class="relative">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+
+    <!-- Heading + Description -->
+    <div class="max-w-3xl">
+      <p class="text-sm font-semibold text-sky-600 tracking-wide uppercase">
+        OAuth 2.0 Flow
+      </p>
+
+      <p class="mt-4 text-slate-600 leading-relaxed">
+        Authura uses the OAuth 2.0 Authorization Code flow with PKCE to securely
+        authenticate users and issue tokens to your application. Users are redirected
+        to Authura for login and consent, while your backend performs the token exchange.
+        Sensitive credentials and tokens are never exposed to the browser, ensuring a
+        secure and standards-compliant authentication flow.
+      </p>
+    </div>
+
+    <!-- Code Blocks -->
+    <div class="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- Step 1 -->
+      <div class="relative rounded-3xl bg-slate-900 text-slate-100 p-6 shadow-xl flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            Step 1 · Redirect the user to Authura
+          </span>
+          <span class="text-xs text-orange-300">Browser</span>
+        </div>
+
+        <pre class="flex-1 text-xs sm:text-sm font-mono leading-relaxed overflow-x-auto">
+          <code>
+            const authorizeUrl = new URL(
+              "https://authura.com/api/oauth/authorize"
+            );
+
+            authorizeUrl.search = new URLSearchParams({
+              client_id: process.env.AUTH_CLIENT_ID,
+              redirect_uri: "https://app.example.com/callback",
+              response_type: "code",
+              scope: "openid profile email",
+              state: csrfToken,
+              code_challenge: pkceChallenge,
+              code_challenge_method: "S256",
+            }).toString();
+
+            res.redirect(authorizeUrl.toString());
+          </code>
+            </pre>
+      </div>
+
+
+      <!-- Step 2 -->
+      <div class="relative rounded-3xl bg-slate-900 text-slate-100 p-6 shadow-xl flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            Step 2 · Exchange the authorization code for tokens
+          </span>
+          <span class="text-xs text-emerald-300">Server</span>
+        </div>
+
+        <pre class="flex-1 text-xs sm:text-sm font-mono leading-relaxed overflow-x-auto">
+          <code>
+            const response = await fetch(
+              "https://authura.com/api/oauth/token",
+              {
+                method: "POST",
+                headers: {
+                  "content-type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                  grant_type: "authorization_code",
+                  client_id: process.env.AUTH_CLIENT_ID,
+                  redirect_uri: "https://app.example.com/callback",
+                  code,
+                  code_verifier: pkceVerifier,
+                }),
+              }
+            );
+
+            const tokens = await response.json();
+          </code>
+        </pre>
+      </div>
+
+
+    </div>
+  </div>
+</section>

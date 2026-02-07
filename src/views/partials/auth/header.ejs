@@ -1,14 +1,17 @@
-<div class="text-center space-y-3 mb-8">
-  <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl shadow-lg mb-2">
+<div class="text-center space-y-4 mb-8">
+  <!-- Logo Icon -->
+  <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl shadow-lg shadow-orange-500/30 mb-2">
     <%- include("../icons/logo") %>
   </div>
 
+  <!-- Title -->
   <h1 class="text-3xl font-bold text-slate-900 tracking-tight">
     <%= title %>
   </h1>
 
+  <!-- Subtitle -->
   <% if (typeof subtitle !== 'undefined' && subtitle) { %>
-  <p class="text-sm text-slate-600 max-w-md mx-auto">
+  <p class="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
     <%= subtitle %>
   </p>
   <% } %>
