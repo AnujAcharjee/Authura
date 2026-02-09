@@ -1,7 +1,7 @@
-import { ENV } from '@/config/env';
-import { logger } from '@/config/logger';
+import { ENV } from './env.js';
+import { logger } from './logger.js';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../../generated/prisma';
+import { PrismaClient } from '../../generated/prisma/client.js';
 
 const connectionString = `${ENV.NEON_PG_DATABASE_URL}`;
 

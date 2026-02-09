@@ -1,10 +1,11 @@
 import type { Request, Response, NextFunction } from 'express';
-import { BaseController } from '@/controllers/base.controller';
-import { COOKIE_NAMES, setSessionCookies } from '@/utils/cookies';
-import type { AuthService } from '@/services/auth.service';
-import type { SessionService } from '@/services/session.service';
-import { AppError } from '@/utils/appError';
-import { ErrorCode } from '@/utils/errorCodes';
+import { BaseController } from '../base.controller.js';
+import { COOKIE_NAMES, setSessionCookies } from '../../utils/cookies.js';
+import { AppError } from '../../utils/appError.js';
+import { ErrorCode } from '../../utils/errorCodes.js';
+import type { AuthService } from '../../services/auth.service.js';
+import type { SessionService } from '../../services/session.service.js';
+
 
 /**
  * SIGN UP :

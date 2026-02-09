@@ -1,13 +1,12 @@
-import prisma from '@/config/database';
-import redis from '@/config/redis';
-import { AppError } from '@/utils/appError';
-import { ErrorCode } from '@/utils/errorCodes';
-import { AppCrypto } from '@/utils/crypto';
-import { ENV } from '@/config/env';
-import { joseService, type JoseService } from '@/services/jose.service';
-import { SCOPES, CRYPTO_ALGORITHMS, type CryptoAlgorithm, type Scope } from '@/utils/constant';
-import { clientService, type ClientService } from '@/services/client.service';
-import { string } from 'zod';
+import prisma from '../config/database.js';
+import redis from '../config/redis.js';
+import { ENV } from '../config/env.js';
+import { AppError } from '../utils/appError.js';
+import { ErrorCode } from '../utils/errorCodes.js';
+import { AppCrypto } from '../utils/crypto.js';
+import { joseService, type JoseService } from '../services/jose.service.js';
+import { SCOPES, CRYPTO_ALGORITHMS, type CryptoAlgorithm, type Scope } from '../utils/constant.js';
+import { clientService, type ClientService } from '../services/client.service.js';
 
 export interface AuthorizationRequest {
   id: string;

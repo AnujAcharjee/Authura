@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { userService } from '@/services/user.service';
-import { UserApiController } from '@/controllers/api/user.api.controller';
-import { UserZSchema } from '@/validators/user.validators';
-import { validateRequest } from '@/middlewares/validateRequest';
-import { Authentication, Authorize } from '@/middlewares/authMiddleware';
-import { ROLES } from '@/utils/constant';
+import { userService } from '../../services/user.service.js';
+import { UserApiController } from '../../controllers/api/user.api.controller.js';
+import { UserZSchema } from '../../validators/user.validators.js';
+import { validateRequest } from '../../middlewares/validateRequest.js';
+import { Authentication, Authorize } from '../../middlewares/authMiddleware.js';
+import { ROLES } from '../../utils/constant.js';
 
 const router = Router();
 

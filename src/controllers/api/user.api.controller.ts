@@ -1,8 +1,8 @@
-import { BaseController } from '@/controllers/base.controller';
+import { BaseController } from '../base.controller.js';
 import type { Request, Response, NextFunction } from 'express';
-import type { UserService } from '@/services/user.service';
-import { COOKIE_NAMES } from '@/utils/cookies';
-import { sessionService } from '@/services/session.service';
+import type { UserService } from '../../services/user.service.js';
+import { COOKIE_NAMES } from '../../utils/cookies.js';
+import { sessionService } from '../../services/session.service.js';
 
 export class UserApiController extends BaseController {
   constructor(private userService: UserService) {

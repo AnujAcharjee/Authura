@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import { clientService } from '@/services/client.service';
-import { joseService } from '@/services/jose.service';
-import { userService } from '@/services/user.service';
-import { ClientController } from '@/controllers/api/client.api.controller';
-import { ClientZSchema } from '@/validators/client.validators';
-import { validateRequest } from '@/middlewares/validateRequest';
-import { Authentication, Authorize } from '@/middlewares/authMiddleware';
-import { ROLES } from '@/utils/constant';
+import { clientService } from '../../services/client.service.js';
+import { joseService } from '../../services/jose.service.js';
+import { userService } from '../../services/user.service.js';
+import { ClientController } from '../../controllers/api/client.api.controller.js';
+import { ClientZSchema } from '../../validators/client.validators.js';
+import { validateRequest } from '../../middlewares/validateRequest.js';
+import { Authentication, Authorize } from '../../middlewares/authMiddleware.js';
+import { ROLES } from '../../utils/constant.js';
 
 const router = Router();
 

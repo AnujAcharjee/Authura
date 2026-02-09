@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UtilFields } from './util.fields';
+import { UtilFields } from './util.fields.js';
 
 export class AuthZSchema {
   static signupSchema = z.object({

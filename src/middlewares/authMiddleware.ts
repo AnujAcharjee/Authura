@@ -1,14 +1,14 @@
-import prisma from '@/config/database';
-import redis from '@/config/redis';
-import { joseService } from '@/services/jose.service';
-import { sessionService } from '@/services/session.service';
-import { oauthService } from '@/services/OAuth.service';
-import { AppError } from '@/utils/appError';
-import { ErrorCode } from '@/utils/errorCodes';
-import { AppCrypto } from '@/utils/crypto';
-import { COOKIE_NAMES, setSessionCookies } from '@/utils/cookies';
-import { CRYPTO_ALGORITHMS } from '@/utils/constant';
-import type { Role, Scope } from '@/utils/constant';
+import prisma from '../config/database.js';
+import redis from '../config/redis.js';
+import { joseService } from '../services/jose.service.js';
+import { sessionService } from '../services/session.service.js';
+import { oauthService } from '../services/OAuth.service.js';
+import { AppError } from '../utils/appError.js';
+import { ErrorCode } from '../utils/errorCodes.js';
+import { AppCrypto } from '../utils/crypto.js';
+import { COOKIE_NAMES, setSessionCookies } from '../utils/cookies.js';
+import { CRYPTO_ALGORITHMS } from '../utils/constant.js';
+import type { Role, Scope } from '../utils/constant.js';
 import type { Request, Response, NextFunction } from 'express';
 
 /**

@@ -1,4 +1,4 @@
-import { ErrorCode } from '@/utils/errorCodes';
+import { ErrorCode } from './errorCodes.js';
 
 export class AppError extends Error {
   public readonly statusCode: number;

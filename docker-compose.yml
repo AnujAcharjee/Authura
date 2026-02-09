@@ -1,0 +1,58 @@
+services:
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - authura
+    networks:
+      - authura-network
+
+  authura:
+    image: anuj304/authura:1.0.0
+    restart: unless-stopped
+    env_file:
+      - .env
+    expose:
+      - "8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - authura-network
+    command: []
+
+  redis:
+    image: redis:8.4.0
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - authura-network
+
+volumes:
+  redis-data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  authura-network:
+    driver: bridge

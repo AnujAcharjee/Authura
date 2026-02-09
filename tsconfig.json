@@ -1,29 +1,22 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "target": "ES2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
 
-    "rootDir": "./",
+    "rootDir": "src",
     "outDir": "dist",
 
     "strict": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
 
-    "baseUrl": "./",
-    "paths": {
-      "@/*": ["src/*"]
-    },
-
-    "typeRoots": ["src/@types", "node_modules/@types"],
-    "types": ["node"],
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
 
     "resolveJsonModule": true,
     "sourceMap": true
   },
 
-  "include": ["src", "generated"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "scripts", "generated"]
 }

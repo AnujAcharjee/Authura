@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import 'dotenv/config';
 
+const isProd = process.env.NODE_ENV === 'production';
+const isDev = process.env.NODE_ENV === 'development';
+
 const numberFromString = (name: string) =>
   z
     .string({ error: `${name} is required` })
@@ -29,11 +32,9 @@ const envSchema = z
 
     PORT: port('PORT'),
 
-    APP_NAME:
-      process.env.NODE_ENV === 'development' ? z.string().optional().default('Authura-idp') : z.string(),
+    APP_NAME: isDev ? z.string().optional().default('Authura') : z.string(),
 
     SERVER_URL: url('SERVER_URL'),
-    FRONTEND_URL: url('FRONTEND_URL'),
 
     COOKIE_SECRET: z
       .string({ error: 'COOKIE_SECRET is required' })
@@ -44,26 +45,22 @@ const envSchema = z
     }),
 
     /* ---------------- Redis ---------------- */
-    REDIS_HOST: z.string({ error: 'REDIS_HOST is required' }),
-    REDIS_USERNAME: z.string({ error: 'REDIS_USERNAME is required' }),
-    REDIS_PORT: port('REDIS_PORT'),
+    REDIS_HOST: isDev ? z.string({ error: 'REDIS_HOST is required' }) : z.string().optional(),
+    REDIS_USERNAME: isDev ? z.string({ error: 'REDIS_USERNAME is required' }) : z.string().optional(),
+    REDIS_PORT: isDev ? port('REDIS_PORT') : port('REDIS_PORT').optional(),
     REDIS_PASSWORD:
-      process.env.NODE_ENV === 'development' ?
+      isDev ?
         z.string({ error: 'REDIS_PASSWORD is required' })
       : z
-          .string({ error: 'REDIS_PASSWORD is required' })
-          .min(32, 'COOKIE_SECRET must be at least 32 characters'),
+          .string({ error: 'REDIS_PASSWORD is required' }),
 
     /* ---------------- SMTP ---------------- */
-    SMTP_HOST: process.env.NODE_ENV === 'development' ? z.string().optional() : z.string(),
-    SMTP_PORT:
-      process.env.NODE_ENV === 'development' ?
-        numberFromString('SMTP_PORT').optional()
-      : numberFromString('SMTP_PORT'),
-    SMTP_USER: process.env.NODE_ENV === 'development' ? z.string().optional() : z.string(),
-    SMTP_PASSWORD: process.env.NODE_ENV === 'development' ? z.string().optional() : z.string(),
+    SMTP_HOST: isDev ? z.string().optional() : z.string(),
+    SMTP_PORT: isDev ? numberFromString('SMTP_PORT').optional() : numberFromString('SMTP_PORT'),
+    SMTP_USER: isDev ? z.string().optional() : z.string(),
+    SMTP_PASSWORD: isDev ? z.string().optional() : z.string(),
     SMTP_FROM:
-      process.env.NODE_ENV === 'development' ?
+      isDev ?
         z.string().min(1, 'SMTP_FROM cannot be empty').optional()
       : z.string().min(1, 'SMTP_FROM cannot be empty'),
 
@@ -106,7 +103,7 @@ const envSchema = z
     CLIENT_CACHE_EX: seconds('CLIENT_CACHE_EX'),
 
     CLIENT_SECRET_KEY:
-      process.env.NODE_ENV === 'development' ?
+      isDev ?
         z.string({
           error: 'CLIENT_SECRET_KEY is required',
         })

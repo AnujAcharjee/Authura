@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UtilFields } from '@/validators/util.fields';
+import { UtilFields } from '../validators/util.fields.js';
 
 export class UserZSchema {
   static getProfileSchema = z.object({

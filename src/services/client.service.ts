@@ -1,10 +1,10 @@
-import prisma from '@/config/database';
-import redis from '@/config/redis';
-import { AppError } from '@/utils/appError';
-import { ErrorCode } from '@/utils/errorCodes';
-import { AppCrypto } from '@/utils/crypto';
-import { ENV } from '@/config/env';
-import { OAUTH_CLIENT_TYPES, CRYPTO_ALGORITHMS, type OAuthClientType } from '@/utils/constant';
+import prisma from '../config/database.js';
+import redis from '../config/redis.js';
+import { ENV } from '../config/env.js';
+import { AppError } from '../utils/appError.js';
+import { ErrorCode } from '../utils/errorCodes.js';
+import { AppCrypto } from '../utils/crypto.js';
+import { OAUTH_CLIENT_TYPES, CRYPTO_ALGORITHMS, type OAuthClientType } from '../utils/constant.js';
 
 export type ClientView = {
   id: string;

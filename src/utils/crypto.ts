@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { CRYPTO_ALGORITHMS, type CryptoAlgorithm } from '@/utils/constant';
+import { CRYPTO_ALGORITHMS, type CryptoAlgorithm } from './constant.js';
 
 export const randomToken = (bytes = 32): string => crypto.randomBytes(bytes).toString('base64url');
 

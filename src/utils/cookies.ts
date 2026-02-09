@@ -1,5 +1,5 @@
-import { ENV } from '@/config/env';
-import { Response } from 'express';
+import { ENV } from '../config/env.js';
+import type { Response } from 'express';
 
 export const COOKIE_NAMES = {
   ACTIVE_SESSION: '_Secure-ASID',

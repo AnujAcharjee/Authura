@@ -1,10 +1,10 @@
-import redis from '@/config/redis';
-import { ENV } from '@/config/env';
-import prisma from '@/config/database';
-import { AppCrypto } from '@/utils/crypto';
-import { AppError } from '@/utils/appError';
-import { ErrorCode } from '@/utils/errorCodes';
-import { type Role, CRYPTO_ALGORITHMS } from '@/utils/constant';
+import redis from '../config/redis.js';
+import { ENV } from '../config/env.js';
+import prisma from '../config/database.js';
+import { AppCrypto } from '../utils/crypto.js';
+import { AppError } from '../utils/appError.js';
+import { ErrorCode } from '../utils/errorCodes.js';
+import { type Role, CRYPTO_ALGORITHMS } from '../utils/constant.js';
 
 type refreshActiveSessionResult = {
   activeSessId: string;

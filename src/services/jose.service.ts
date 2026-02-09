@@ -1,9 +1,9 @@
 import * as jose from 'jose';
 import crypto from 'crypto';
-import prisma from '@/config/database';
-import { Prisma } from 'generated/prisma';
-import { ENV } from '@/config/env';
-import { KEY_ALGORITHMS, KEY_STATUS, KEY_USE, CRYPTO_ALGORITHMS } from '@/utils/constant';
+import prisma from '../config/database.js';
+import { Prisma } from '../../generated/prisma/client.js';
+import { ENV } from '../config/env.js';
+import { KEY_ALGORITHMS, KEY_STATUS, KEY_USE, CRYPTO_ALGORITHMS } from '../utils/constant.js';
 
 type EncryptedPrivateKey = {
   data: string;

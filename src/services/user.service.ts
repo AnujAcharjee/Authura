@@ -1,9 +1,9 @@
-import prisma from '@/config/database';
-import redis from '@/config/redis';
-import { AppError } from '@/utils/appError';
-import { ENV } from '@/config/env';
-import { ErrorCode } from '@/utils/errorCodes';
-import type { Role } from '@/utils/constant';
+import prisma from '../config/database.js';
+import redis from '../config/redis.js';
+import { AppError } from '../utils/appError.js';
+import { ENV } from '../config/env.js';
+import { ErrorCode } from '../utils/errorCodes.js';
+import type { Role } from '../utils/constant.js';
 
 interface ProfileUpdateInput {
   name?: string;

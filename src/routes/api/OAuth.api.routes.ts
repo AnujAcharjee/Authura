@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { oauthService } from '@/services/OAuth.service';
-import { userService } from '@/services/user.service';
-import { OAuthApiController } from '@/controllers/api/OAuth.api.controllers';
-import { OAuthZSchema } from '@/validators/OAuth.validator';
-import { validateRequest } from '@/middlewares/validateRequest';
-import { Authentication, Authorize } from '@/middlewares/authMiddleware';
-import { ROLES } from '@/utils/constant';
+import { oauthService } from '../../services/OAuth.service.js';
+import { userService } from '../../services/user.service.js';
+import { OAuthApiController } from '../../controllers/api/OAuth.api.controllers.js';
+import { OAuthZSchema } from '../../validators/OAuth.validator.js';
+import { validateRequest } from '../../middlewares/validateRequest.js';
+import { Authentication, Authorize } from '../../middlewares/authMiddleware.js';
+import { ROLES } from '../../utils/constant.js';
 
 const router = Router();
 

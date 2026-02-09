@@ -1,6 +1,6 @@
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import { ENV } from './env';
+import { ENV } from './env.js';
 
 const logLevel = ENV.NODE_ENV === 'production' ? 'info' : 'debug';
 

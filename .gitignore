@@ -6,4 +6,4 @@ logs/
 coverage/
 .vscode
 /generated/prisma
-
+/public/css

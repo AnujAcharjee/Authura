@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import { AuthApiController } from '@/controllers/api/auth.api.controller';
-import { authService } from '@/services/auth.service';
-import { sessionService } from '@/services/session.service';
-import { AuthZSchema } from '@/validators/auth.validators';
-import { validateRequest } from '@/middlewares/validateRequest';
-import { emailVerificationLimiter } from '@/middlewares/rateLimiter';
-import { Authentication, Authorize } from '@/middlewares/authMiddleware';
-import { ROLES } from '@/utils/constant';
+import { AuthApiController } from '../../controllers/api/auth.api.controller.js';
+import { authService } from '../../services/auth.service.js';
+import { sessionService } from '../../services/session.service.js';
+import { AuthZSchema } from '../../validators/auth.validators.js';
+import { validateRequest } from '../../middlewares/validateRequest.js';
+import { emailVerificationLimiter } from '../../middlewares/rateLimiter.js';
+import { Authentication, Authorize } from '../../middlewares/authMiddleware.js';
+import { ROLES } from '../../utils/constant.js';
 
 const router = Router();
 

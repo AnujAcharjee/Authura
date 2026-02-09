@@ -1,4 +1,4 @@
-FROM node:24-alpine
+FROM node:20.20-alpine3.23
 
 # Add non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
@@ -8,24 +8,21 @@ RUN apk add --no-cache netcat-openbsd wget
 
 WORKDIR /app
 
-# Create directories and set permissions
-RUN mkdir -p node_modules dist && \
-    chown -R appuser:appgroup /app
+# Create dirs and fix ownership
+RUN mkdir -p node_modules dist logs\
+  && chown -R appuser:appgroup /app
 
-COPY package*.json ./
-COPY prisma ./prisma/
-COPY tsconfig*.json ./
-COPY scripts ./scripts/
-COPY nodemon.json ./
-COPY public ./public
-
-# Set permissions
-RUN chown -R appuser:appgroup /app
+# Copy files with correct ownership
+COPY --chown=appuser:appgroup package*.json ./
+COPY --chown=appuser:appgroup prisma ./prisma/
+COPY --chown=appuser:appgroup tsconfig*.json ./
+COPY --chown=appuser:appgroup scripts ./scripts/
+COPY --chown=appuser:appgroup nodemon.json ./
+COPY --chown=appuser:appgroup public ./public
 
 # Switch to non-root user
 USER appuser
 
-# Install ALL dependencies (including devDependencies)
 RUN npm install
 
 EXPOSE 8080

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CRYPTO_ALGORITHMS, type CryptoAlgorithm, type Scope } from '@/utils/constant';
+import { CRYPTO_ALGORITHMS, type CryptoAlgorithm, type Scope } from '../utils/constant.js';
 
 export class OAuthZSchema {
   static authorizeClientSchema = z.object({

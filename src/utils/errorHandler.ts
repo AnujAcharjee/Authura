@@ -1,12 +1,12 @@
-import { AppError } from './appError';
-import { logger } from '@/config/logger';
-import { ErrorCode } from './errorCodes';
-import { Prisma } from 'generated/prisma/client';
+import { AppError } from './appError.js';
+import { ErrorCode } from './errorCodes.js';
+import { logger } from '../config/logger.js';
+import { PrismaClientKnownRequestError } from '../../generated/prisma/runtime/client.js';
 
 export class ErrorHandler {
   static handle(error: unknown, context: string) {
     // handel Prisma errors
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error instanceof PrismaClientKnownRequestError) {
       const prismaError = this.handlePrismaError(error);
       logger.warn('Prisma error occurred', {
         message: prismaError.message,
@@ -46,7 +46,7 @@ export class ErrorHandler {
   }
 
   // helper
-  private static handlePrismaError(error: Prisma.PrismaClientKnownRequestError): AppError {
+  private static handlePrismaError(error: PrismaClientKnownRequestError): AppError {
     switch (error.code) {
       case 'P2002':
         return new AppError('Resource already exists', 409, ErrorCode.ALREADY_EXISTS);

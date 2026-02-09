@@ -1,23 +1,22 @@
-import express, { Express, Request, Response } from 'express';
-import cors from 'cors';
+import express, { type Express, type Request, type Response } from 'express';
 import cookieParser from 'cookie-parser';
 import path from 'path';
-import { ENV } from '@/config/env';
-import { errorMiddleware } from '@/middlewares/errorMiddleware';
-import { notFoundHandler } from '@/middlewares/notFound';
-import { loggingMiddleware } from '@/middlewares/loggingMiddleware';
-import { setupSecurityHeaders } from '@/middlewares/securityHeaders';
-import { ensureRequestId } from '@/middlewares/requestId';
-import { authLimiter, apiLimiter } from '@/middlewares/rateLimiter';
-import authRoutes from '@/routes/api/auth.api.routes';
-import oauthRoutes from '@/routes/api/OAuth.api.routes';
-import clientRoutes from '@/routes/api/client.api.routes';
-import userRoutes from '@/routes/api/user.api.routes';
-import pagesRoutes from '@/routes/ui/ui.routes';
-
-import ejs from 'ejs';
 import ejsMate from 'ejs-mate';
 import methodOverride from 'method-override';
+
+import { ENV } from './config/env.js';
+import { errorMiddleware } from './middlewares/errorMiddleware.js';
+import { notFoundHandler } from './middlewares/notFound.js';
+import { loggingMiddleware } from './middlewares/loggingMiddleware.js';
+import { setupSecurityHeaders } from './middlewares/securityHeaders.js';
+import { ensureRequestId } from './middlewares/requestId.js';
+import { authLimiter, apiLimiter } from './middlewares/rateLimiter.js';
+import authRoutes from './routes/api/auth.api.routes.js';
+import oauthRoutes from './routes/api/OAuth.api.routes.js';
+import clientRoutes from './routes/api/client.api.routes.js';
+import userRoutes from './routes/api/user.api.routes.js';
+import pagesRoutes from './routes/ui/ui.routes.js';
+
 
 const app = express();
 
@@ -26,18 +25,15 @@ app.engine('ejs', ejsMate);
 app.set('view engine', 'ejs');
 app.set('views', path.join(process.cwd(), 'src', 'views'));
 
-// Trust the first proxy in front of the app (e.g. Nginx, load balancer, Docker)
+// Trust the first proxy in front of the app (e.g. Nginx, Caddy, load balancer, Docker)
 // This is required so Express correctly reads the real client IP from
-// X-Forwarded-For headers, which is critical for rate limiting, logging,
-// and security controls. Do NOT enable this unless the app is actually
-// behind a trusted reverse proxy.
+// X-Forwarded-For headers, which is critical for rate limiting, logging, and security controls.
 app.set('trust proxy', true);
 
 const setupMiddleware = (app: express.Application) => {
   // Security
   setupSecurityHeaders(app as Express);
   app.use(ensureRequestId);
-  // app.use(cors({ origin: ENV.FRONTEND_URL, credentials: true }));
 
   // Performance
   app.use(express.urlencoded({ extended: false }));
@@ -55,8 +51,6 @@ const setupMiddleware = (app: express.Application) => {
 };
 
 setupMiddleware(app);
-
-// Routes
 
 // Health Check
 app.get('/health', (_req: Request, res: Response) => {

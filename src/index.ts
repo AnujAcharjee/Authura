@@ -1,10 +1,10 @@
-import app from './app';
-import { ENV } from '@/config/env';
-import { logger } from '@/config/logger';
-import prisma from '@/config/database';
-import { emailService } from '@/services/email.service';
+import app from './app.js';
+import { ENV } from './config/env.js';
+import { logger } from './config/logger.js';
+import prisma from './config/database.js';
+import { emailService } from './services/email.service.js';
 import { Server } from 'node:http';
-import { joseService } from '@/services/jose.service';
+import { joseService } from './services/jose.service.js';
 
 let server: Server | undefined;
 let isShuttingDown = false;
@@ -15,7 +15,7 @@ async function init() {
 
   await joseService.initJwks();
 
-  server = app.listen(ENV.PORT, () => {
+  server = app.listen(ENV.PORT, '0.0.0.0', () => {
     logger.info(`Server running on port ${ENV.PORT} in ${ENV.NODE_ENV} mode`);
   });
 }

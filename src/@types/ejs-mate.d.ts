@@ -1,6 +1,10 @@
 declare module 'ejs-mate' {
-  import { Engine } from 'express';
+  type Engine = (
+    path: string,
+    options: Record<string, any>,
+    callback: (err: any, rendered?: string) => void,
+  ) => void;
 
   const engine: Engine;
-  export default engine;
+  export = engine;
 }

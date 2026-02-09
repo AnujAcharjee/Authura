@@ -1,6 +1,6 @@
 import helmet from 'helmet';
 import { Express } from 'express';
-import { ENV } from '@/config/env';
+import { ENV } from '../config/env.js';
 
 export const setupSecurityHeaders = (app: Express) => {
   // Remove the X-Powered-By header to avoid exposing the technology stack
@@ -16,7 +16,7 @@ export const setupSecurityHeaders = (app: Express) => {
           scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Required for Swagger UI
           styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles for Swagger UI
           imgSrc: ["'self'", 'data:', 'https:'], // Allow images from same origin, data URIs, and HTTPS
-          connectSrc: ["'self'", ENV.FRONTEND_URL], // Allow API calls to same origin and frontend
+          // connectSrc: ["'self'", ENV.FRONTEND_URL], // Allow API calls to same origin and frontend
           fontSrc: ["'self'", 'https:', 'data:'], // Allow fonts from same origin, HTTPS, and data URIs
           objectSrc: ["'none'"], // Block <object>, <embed>, and <applet> elements
           mediaSrc: ["'none'"], // Block media elements
@@ -74,16 +74,16 @@ export const setupSecurityHeaders = (app: Express) => {
   });
 
   // Production-specific CORS configuration
-  if (ENV.NODE_ENV === 'production') {
-    app.use((req, res, next) => {
-      const allowedOrigins = [ENV.FRONTEND_URL]; // Whitelist of allowed origins
-      const origin = req.headers.origin;
+  // if (ENV.NODE_ENV === 'production') {
+  //   app.use((req, res, next) => {
+  //     // const allowedOrigins = [ENV.FRONTEND_URL]; // Whitelist of allowed origins
+  //     const origin = req.headers.origin;
 
-      // Only allow requests from whitelisted origins
-      if (origin && allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-      }
-      next();
-    });
-  }
+  //     // Only allow requests from whitelisted origins
+  //     if (origin && allowedOrigins.includes(origin)) {
+  //       res.setHeader('Access-Control-Allow-Origin', origin);
+  //     }
+  //     next();
+  //   });
+  // }
 };

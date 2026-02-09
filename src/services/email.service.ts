@@ -1,11 +1,11 @@
 import nodemailer from 'nodemailer';
-import { ENV } from '@/config/env';
-import { logger } from '@/config/logger';
+import { ENV } from '../config/env.js';
+import { logger } from '../config/logger.js';
 import {
   getEmailVerificationTemplate,
   getPasswordResetEmailTemplate,
   getSignInVerificationTemplate,
-} from '@/templates/email';
+} from '../templates/email/index.js';
 
 class EmailService {
   private transporter!: nodemailer.Transporter;
@@ -161,7 +161,7 @@ class EmailService {
   }
 
   async sendPasswordResetEmail(to: string, name: string, resetToken: string): Promise<void> {
-    const resetUrl = `${ENV.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    const resetUrl = `${ENV.SERVER_URL}/reset-password?token=${resetToken}`;
 
     try {
       const info = await this.transporter.sendMail({

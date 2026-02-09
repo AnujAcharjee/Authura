@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { OAUTH_CLIENT_TYPES, type OAuthClientType } from '@/utils/constant';
-import { UtilFields } from '@/validators/util.fields';
+import { OAUTH_CLIENT_TYPES, type OAuthClientType } from '../utils/constant.js';
+import { UtilFields } from './util.fields.js';
 
 export class ClientZSchema {
   static addClientSchema = z.object({

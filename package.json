@@ -1,5 +1,5 @@
 {
-  "name": "authura-idp",
+  "name": "authura",
   "version": "1.0.0",
   "private": true,
   "description": "An Identity provider",
@@ -14,12 +14,11 @@
     "build": "npx tsc --build",
     "start": "node dist/index.js",
     "dev": "npx nodemon",
-    "dev:clean": "rimraf dist && tsx watch src/index.ts",
     "seed:dev": "tsx --tsconfig tsconfig.scripts.json scripts/dev.seed.ts",
     "seed:prod": "NODE_ENV=production tsx --tsconfig tsconfig.scripts.json scripts/prod.seed.ts",
-    "docker:dev:build": "docker compose --project-name authura-idp -f docker-compose.dev.yml build --no-cache",
-    "docker:dev:up": "docker compose --project-name authura-idp -f docker-compose.dev.yml up -d",
-    "docker:dev:down": "docker compose --project-name authura-idp -f docker-compose.dev.yml down -v",
+    "docker:dev:build": "docker compose --project-name authura -f docker-compose.dev.yml build --no-cache",
+    "docker:dev:up": "docker compose --project-name authura -f docker-compose.dev.yml up -d",
+    "docker:dev:down": "docker compose --project-name authura -f docker-compose.dev.yml down -v",
     "prisma:dev:migrate": "npx prisma migrate dev",
     "prisma:dev:migrate-reset": "npx prisma migrate reset",
     "prisma:prod:migrate": "npx prisma migrate deploy",
@@ -28,7 +27,6 @@
     "css:build": "npx @tailwindcss/cli -i ./src/styles/input.css -o ./public/css/output.css --minify"
   },
   "devDependencies": {
-    "@prisma/client": "^7.3.0",
     "@tailwindcss/cli": "^4.1.18",
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
@@ -52,6 +50,7 @@
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.2.0",
+    "@prisma/client": "^7.3.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

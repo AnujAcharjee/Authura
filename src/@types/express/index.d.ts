@@ -1,5 +1,4 @@
-import type { Request } from 'express';
-import type { Role } from '@/utils/constant';
+import type { Role, Scope } from '../../utils/constant.js';
 
 declare global {
   namespace Express {

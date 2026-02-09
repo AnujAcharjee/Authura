@@ -1,5 +1,5 @@
 services:
-  backend:
+  authura-dev:
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -7,6 +7,7 @@ services:
       - ./src:/app/src:delegated
       - ./prisma:/app/prisma:delegated
       - ./package.json:/app/package.json:delegated
+      - ./package-lock.json:/app/package-lock.json:delegated
       - ./tsconfig.json:/app/tsconfig.json:delegated
       - ./scripts:/app/scripts:delegated
       - ./tsconfig.scripts.json:/app/tsconfig.scripts.json:delegated
@@ -24,11 +25,13 @@ services:
     command: |
       sh -c '
         npm run prisma:generate &&
-        if [ "$RUN_SEEDS" = "true" ]; then npm run seed:dev; fi &&
+        if [ "$RUN_SEEDS" = "true" ]; then 
+          npm run seed:dev; 
+        fi &&
         npx concurrently "npm run css:dev" "npm run dev"
       '
     networks:
-      - authura-network
+      - authura-dev-network
     restart: unless-stopped
 
   redis:
@@ -48,7 +51,7 @@ services:
       timeout: 3s
       retries: 5
     networks:
-      - authura-network
+      - authura-dev-network
 
 volumes:
   redis-data:
@@ -59,5 +62,5 @@ volumes:
     driver: local
 
 networks:
-  authura-network:
+  authura-dev-network:
     driver: bridge

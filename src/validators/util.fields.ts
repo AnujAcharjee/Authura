@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { GENDERS, type Gender } from '@/utils/constant';
+import { GENDERS, type Gender } from '../utils/constant.js';
 
 export class UtilFields {
   private static readonly PASSWORD_MESSAGE =

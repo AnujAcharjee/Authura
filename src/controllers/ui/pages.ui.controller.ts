@@ -1,12 +1,10 @@
 import type { Request, Response, NextFunction } from 'express';
-import fs from 'fs/promises';
-import path from 'path';
-import { BaseController } from '@/controllers/base.controller';
-import type { UserService, UserView } from '@/services/user.service';
-import type { AllClientsView, ClientService } from '@/services/client.service';
-import type { OAuthService, OAuthConsentView } from '@/services/OAuth.service';
-import { AppError } from '@/utils/appError';
-import { ErrorCode } from '@/utils/errorCodes';
+import { BaseController } from '../../controllers/base.controller.js';
+import type { UserService, UserView } from '../../services/user.service.js';
+import type { AllClientsView, ClientService } from '../../services/client.service.js';
+import type { OAuthService, OAuthConsentView } from '../../services/OAuth.service.js';
+import { AppError } from '../../utils/appError.js';
+import { ErrorCode } from '../../utils/errorCodes.js';
 
 export class PagesUiController extends BaseController {
   constructor(
@@ -108,25 +106,6 @@ export class PagesUiController extends BaseController {
     this.renderPage(req, res, next, 'pages/app/landing', {
       title: 'Landing Page',
     });
-
-  // ---------- DOCS ----------
-
-  renderOAuthDocsPage = (req: Request, res: Response, next: NextFunction) =>
-    this.handleRequest(
-      req,
-      res,
-      next,
-      async () => {
-        const docPath = path.join(process.cwd(), 'docs', 'oauth-api.md');
-        const docContent = await fs.readFile(docPath, 'utf8');
-
-        res.render('pages/docs/oauth-api', {
-          title: 'OAuth and OIDC Docs',
-          docContent,
-        });
-      },
-      { raw: true },
-    );
 
   renderAccountDashboard = (req: Request, res: Response, next: NextFunction) =>
     this.handleRequest(

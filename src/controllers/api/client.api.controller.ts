@@ -1,12 +1,12 @@
-import { BaseController } from '@/controllers/base.controller';
-import { AppError } from '@/utils/appError';
-import { ErrorCode } from '@/utils/errorCodes';
-import { ENV } from '@/config/env';
+import { BaseController } from '../base.controller.js';
+import { AppError } from '../../utils/appError.js';
+import { ErrorCode } from '../../utils/errorCodes.js';
+import { ROLES } from '../../utils/constant.js';
+import { ENV } from '../../config/env.js';
 import type { Request, Response, NextFunction } from 'express';
-import type { ClientService } from '@/services/client.service';
-import type { JoseService } from '@/services/jose.service';
-import type { UserService } from '@/services/user.service';
-import { ROLES } from '@/utils/constant';
+import type { ClientService } from '../../services/client.service.js';
+import type { JoseService } from '../../services/jose.service.js';
+import type { UserService } from '../../services/user.service.js';
 
 export class ClientController extends BaseController {
   constructor(

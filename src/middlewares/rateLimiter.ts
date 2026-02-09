@@ -1,4 +1,3 @@
-import { ENV } from '@/config/env';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 
 export const authLimiter = rateLimit({

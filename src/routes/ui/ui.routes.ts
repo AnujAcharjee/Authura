@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { PagesUiController } from '@/controllers/ui/pages.ui.controller';
-import { oauthService } from '@/services/OAuth.service';
-import { Authentication, Authorize } from '@/middlewares/authMiddleware';
-import { userService } from '@/services/user.service';
-import { clientService } from '@/services/client.service';
-import { ROLES } from '@/utils/constant';
+import { PagesUiController } from '../../controllers/ui/pages.ui.controller.js';
+import { oauthService } from '../../services/OAuth.service.js';
+import { Authentication, Authorize } from '../../middlewares/authMiddleware.js';
+import { userService } from '../../services/user.service.js';
+import { clientService } from '../../services/client.service.js';
+import { ROLES } from '../../utils/constant.js';
 
 const router = Router();
 
@@ -13,7 +13,6 @@ const pagesController = new PagesUiController(userService, clientService, oauthS
 // ------------------- Landing -------------------
 
 router.get('/', pagesController.renderLandingPage);
-router.get('/docs', pagesController.renderOAuthDocsPage);
 
 // ------------------- Auth -------------------
 

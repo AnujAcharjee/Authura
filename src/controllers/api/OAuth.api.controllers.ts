@@ -1,8 +1,8 @@
-import { BaseController } from '@/controllers/base.controller';
-import { CRYPTO_ALGORITHMS, SCOPES, type CryptoAlgorithm } from '@/utils/constant';
+import { BaseController } from '../base.controller.js';
+import { CRYPTO_ALGORITHMS, SCOPES, type CryptoAlgorithm } from '../../utils/constant.js';
 import type { Request, Response, NextFunction } from 'express';
-import type { OAuthService } from '@/services/OAuth.service';
-import type { UserService } from '@/services/user.service';
+import type { OAuthService } from '../../services/OAuth.service.js';
+import type { UserService } from '../../services/user.service.js';
 
 /**
  * AUTHORIZE :

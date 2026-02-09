@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import type { Response } from 'express';
 
 export class ApiResponse {
   static success(res: Response, data: unknown = null, message: string = 'Success') {

@@ -1,7 +1,7 @@
 import { ErrorRequestHandler } from 'express';
-import { AppError } from '@/utils/appError';
-import { ApiResponse } from '@/utils/apiResponse';
-import { logger } from '@/config/logger';
+import { AppError } from '../utils/appError.js';
+import { ApiResponse } from '../utils/apiResponse.js';
+import { logger } from '../config/logger.js';
 
 /**
  * if req accepts html

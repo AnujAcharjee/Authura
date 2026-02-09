@@ -1,4 +1,4 @@
-# Dependencies (rebuilt inside container)
+# Dependencies
 node_modules
 
 # Build output
@@ -8,12 +8,10 @@ build
 
 # Logs
 npm-debug.log
-yarn-error.log
-pnpm-debug.log
 logs
 *.log
 
-# Env files (never bake secrets)
+# Env files 
 .env
 .env.*
 !.env.example
@@ -35,11 +33,18 @@ coverage
 *.spec.ts
 *.test.ts
 
-# Linting / formatting (safe to ignore in Docker)
+# Linting / formatting
 .eslintrc
 .eslintrc.*
 .prettierrc
 .prettierrc.*
 eslint.config.*
 
+# docs
 README.md
+doc
+
+# Dev-only Docker files (comment out in dev)
+Dockerfile.*
+docker-compose.*.yml
+nodemon.json

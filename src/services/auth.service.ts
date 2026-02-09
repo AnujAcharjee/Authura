@@ -1,13 +1,13 @@
-import prisma from '@/config/database';
 import bcrypt from 'bcrypt';
-import redis from '@/config/redis';
-import { AppError } from '@/utils/appError';
-import { ErrorCode } from '@/utils/errorCodes';
-import { AppCrypto } from '@/utils/crypto';
-import { emailService } from '@/services/email.service';
-import { ENV } from '@/config/env';
-import { sessionService } from '@/services/session.service';
-import { ROLES, GENDERS, AUTH_PROVIDERS, CRYPTO_ALGORITHMS, type Role, type Gender } from '@/utils/constant';
+import prisma from '../config/database.js';
+import redis from '../config/redis.js';
+import { AppError } from '../utils/appError.js';
+import { ErrorCode } from '../utils/errorCodes.js';
+import { AppCrypto } from '../utils/crypto.js';
+import { emailService } from '../services/email.service.js';
+import { ENV } from '../config/env.js';
+import { sessionService } from '../services/session.service.js';
+import { ROLES, GENDERS, AUTH_PROVIDERS, CRYPTO_ALGORITHMS, type Role, type Gender } from '../utils/constant.js';
 
 export class AuthService {
   private readonly emailVerificationTokenExpiry =

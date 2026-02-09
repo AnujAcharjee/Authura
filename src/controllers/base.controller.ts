@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
-import { ApiResponse } from '@/utils/apiResponse';
-import { AppError } from '@/utils/appError';
-import { ErrorCode } from '@/utils/errorCodes';
+import { ApiResponse } from '../utils/apiResponse.js';
+import { AppError } from '../utils/appError.js';
+import { ErrorCode } from '../utils/errorCodes.js';
 
 type ActionResult = {
   data?: unknown;
