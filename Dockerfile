@@ -32,7 +32,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 WORKDIR /app
 
-RUN mkdir -p dist public generated logs \
+RUN mkdir -p dist public generated logs src \
   && chown -R appuser:appgroup /app
 
 COPY --chown=appuser:appgroup --from=builder /app/package*.json ./
@@ -40,6 +40,7 @@ COPY --chown=appuser:appgroup --from=builder /app/node_modules ./node_modules
 COPY --chown=appuser:appgroup --from=builder /app/dist ./dist
 COPY --chown=appuser:appgroup --from=builder /app/public ./public
 COPY --chown=appuser:appgroup --from=builder /app/generated ./generated
+COPY --chown=appuser:appgroup --from=builder /app/src/views ./src/views
 
 # REMOVE NPM FROM RUNTIME (major CVE reduction)
 RUN npm uninstall -g npm && \
