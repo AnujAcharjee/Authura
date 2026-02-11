@@ -28,6 +28,7 @@ export type OAuthConsentView = {
   };
   scopes: string[];
   date: Date;
+  revokedAt: Date | null;
 };
 
 type AccessTokenPayload = {
@@ -63,8 +64,7 @@ export class OAuthService {
       .map((s) => s.trim())
       .filter((s): s is Scope => Object.values(SCOPES).includes(s as Scope));
 
-    if (scopes.length === 0)
-      throw new AppError(`Insufficient scope: ${scope}`, 403, ErrorCode.INVALID_SCOPE);
+    if (scopes.length === 0) throw new AppError(`Insufficient scope: ${scope}`, 403, ErrorCode.INVALID_SCOPE);
 
     return scopes;
   }
@@ -137,15 +137,32 @@ export class OAuthService {
     return JSON.parse(raw);
   }
 
+  // ---------- DELETE AUTH REQUEST ----------
+
+  async deleteAuthorizationRequest(id: string): Promise<void> {
+    await redis.del(this.authRequestKey(id));
+  }
+
   // ---------- ISSUE AUTH CODE ----------
 
-  async issueAuthorizationCode(req: AuthorizationRequest): Promise<string> {
+  private async issueAuthorizationCode(req: AuthorizationRequest): Promise<string> {
     const code = AppCrypto.randomToken(32);
     const hash = AppCrypto.hash(code, CRYPTO_ALGORITHMS.sha256, 'hex');
 
     await redis.set(this.authCodeKey(hash), JSON.stringify(req), 'EX', this.authCodeTTL);
-    await redis.del(this.authRequestKey(req.id));
+    await this.deleteAuthorizationRequest(req.id);
     return code;
+  }
+
+  // ---------- AUTHORIZE ----------
+
+  async authorize(authReq: AuthorizationRequest) {
+    const code = await this.issueAuthorizationCode(authReq);
+    const redirectURL = new URL(authReq.redirectUri);
+    redirectURL.searchParams.set('code', code);
+    if (authReq.state) redirectURL.searchParams.set('state', authReq.state);
+
+    return redirectURL.toString();
   }
 
   // ---------- CONSENT CHECK ----------
@@ -178,6 +195,7 @@ export class OAuthService {
       update: {
         scopes,
         updatedAt: new Date(),
+        revokedAt: null,
       },
     });
   }
@@ -278,6 +296,7 @@ export class OAuthService {
       select: {
         scopes: true,
         createdAt: true,
+        revokedAt: true,
         client: {
           select: {
             id: true,
@@ -297,7 +316,58 @@ export class OAuthService {
       },
       scopes: consent.scopes,
       date: consent.createdAt,
+      revokedAt: consent.revokedAt,
     }));
+  }
+
+  // ---------- UPDATE CONSENT ----------
+
+  async revokeConsent(userId: string, clientId: string): Promise<void> {
+    const consent = await prisma.oAuthConsent.findFirst({
+      where: {
+        userId,
+        clientId,
+      },
+      select: { id: true },
+    });
+
+    if (!consent) {
+      throw new AppError('Consent not found', 404, ErrorCode.INVALID_INPUT);
+    }
+
+    await prisma.oAuthConsent.update({
+      where: {
+        userId_clientId: { userId, clientId },
+      },
+      data: {
+        revokedAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  async reissueConsent(userId: string, clientId: string): Promise<void> {
+    const consent = await prisma.oAuthConsent.findFirst({
+      where: {
+        userId,
+        clientId,
+      },
+      select: { id: true },
+    });
+
+    if (!consent) {
+      throw new AppError('Consent not found', 404, ErrorCode.INVALID_INPUT);
+    }
+
+    await prisma.oAuthConsent.update({
+      where: {
+        userId_clientId: { userId, clientId },
+      },
+      data: {
+        revokedAt: null,
+        updatedAt: new Date(),
+      },
+    });
   }
 }
 

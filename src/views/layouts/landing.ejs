@@ -5,15 +5,87 @@
   <%- include("../partials/head", { title }) %>
 </head>
 
-<body class="min-h-screen bg-linear-to-br from-white via-orange-50/20 to-sky-50/30 text-slate-900 antialiased">
-  
-  <!-- Background Pattern -->
+<body class="min-h-screen bg-linear-to-br from-white via-orange-50/20 to-sky-50/30 text-slate-900 antialiased overflow-x-hidden">
+
+  <!-- Animated Background -->
   <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-    <div class="absolute top-0 right-0 w-125 h-125 bg-linear-to-bl from-orange-200/30 to-transparent rounded-full blur-3xl"></div>
-    <div class="absolute bottom-0 left-0 w-125 h-125 bg-linear-to-tr from-sky-200/30 to-transparent rounded-full blur-3xl"></div>
+
+    <!-- Floating Gradient Orbs -->
+    <div class="absolute -top-24 -right-24 w-96 h-96 bg-linear-to-br from-orange-300/40 to-orange-500/20 rounded-full blur-3xl animate-float"></div>
+
+    <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-linear-to-tr from-sky-300/40 to-sky-500/20 rounded-full blur-3xl animate-float-delayed"></div>
+
+    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 w-lg h-128 bg-linear-to-br from-orange-200/20 to-transparent rounded-full blur-3xl animate-pulse-slow"></div>
+
+    <!-- Subtle Grid Pattern -->
+    <svg class="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" stroke-width="1" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grid)" />
+    </svg>
+
   </div>
 
-  <%- body %>
+  <!-- Page Content -->
+  <main class="relative z-10">
+    <%- body %>
+  </main>
+
+  <!-- Animation Styles -->
+  <style>
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0px) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-20px) rotate(6deg);
+      }
+    }
+
+    @keyframes float-delayed {
+
+      0%,
+      100% {
+        transform: translateY(0px) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-25px) rotate(-6deg);
+      }
+    }
+
+    @keyframes pulse-slow {
+
+      0%,
+      100% {
+        opacity: 0.25;
+      }
+
+      50% {
+        opacity: 0.45;
+      }
+    }
+
+    .animate-float {
+      animation: float 10s ease-in-out infinite;
+    }
+
+    .animate-float-delayed {
+      animation: float-delayed 12s ease-in-out infinite;
+      animation-delay: 2s;
+    }
+
+    .animate-pulse-slow {
+      animation: pulse-slow 8s ease-in-out infinite;
+    }
+  </style>
+
 </body>
 
 </html>

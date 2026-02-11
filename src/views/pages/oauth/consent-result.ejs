@@ -1,0 +1,83 @@
+<% layout('layouts/main') %>
+
+<%
+  const appName = clientName.toUpperCase();
+%>
+
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4">
+  <div class="w-full max-w-lg">
+
+    <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/60 overflow-hidden">
+
+      <!-- Header -->
+      <div class="bg-linear-to-r from-orange-500 to-orange-600 p-6 text-white">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <h1 class="text-2xl font-bold">
+              <%= isDenied ? 'Access Denied' : 'Access Approved' %>
+            </h1>
+            <p class="text-white/80 text-sm">
+              <%= isDenied ? 'Authorization Cancelled' : 'Authorization Successful' %>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="p-6 space-y-6 text-center">
+
+        <div>
+          <% if (!isDenied) { %>
+          <p class="text-slate-700">
+            You have successfully granted access to
+            <span class="font-semibold"><%= appName %></span>.
+          </p>
+          <p class="text-sm text-slate-500 mt-2">
+            You may now return to the application to continue.
+          </p>
+          <% } else { %>
+          <p class="text-slate-700">
+            You have denied access to
+            <span class="font-semibold"><%= appName %></span>.
+          </p>
+          <p class="text-sm text-slate-500 mt-2">
+            You will be returned to the application.
+          </p>
+          <% } %>
+        </div>
+
+        <!-- Continue Button -->
+        <div>
+          <a href="<%- continueUrl %>" class="inline-flex items-center justify-center w-full px-6 py-3
+          rounded-lg border-2 border-orange-500
+          bg-white text-orange-600 font-semibold
+          hover:bg-orange-50
+          transition-all duration-200
+          shadow-sm hover:shadow-md
+          focus:outline-none focus:ring-2 focus:ring-orange-500/20">
+            Continue to <%= clientName %>
+          </a>
+        </div>
+
+        <p class="text-xs text-slate-400">
+          If you are not redirected automatically, use the button above.
+        </p>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Auto Redirect -->
+<script>
+  const redirectUrl = JSON.stringify(continueUrl);
+  setTimeout(() => {
+    window.location.href = redirectUrl;
+  }, 1500);
+</script>

@@ -6,7 +6,6 @@ import { ErrorCode } from '../../utils/errorCodes.js';
 import type { AuthService } from '../../services/auth.service.js';
 import type { SessionService } from '../../services/session.service.js';
 
-
 /**
  * SIGN UP :
  *  1. get user data
@@ -40,14 +39,15 @@ export class AuthApiController extends BaseController {
         data,
         message: 'Account created successfully. Please verify your email address.',
         successRedirect: '/signup/verify',
-        query: `&email=${data.email}`,
+        query: `&email=${encodeURIComponent(data.email)}`,
       };
     });
   };
 
+  /** Called by email ui router */
   verifyEmail = (req: Request, res: Response, next: NextFunction): void => {
     this.handleRequest(req, res, next, async () => {
-      const { token } = req.params;
+      const token  = req.query.token as string;
 
       const ids = await this.authService.verifyEmail(token);
 
@@ -73,6 +73,7 @@ export class AuthApiController extends BaseController {
       return {
         message: 'If an account exists, a verification email has been sent',
         successRedirect: '/signup/verify',
+        query: `&email=${encodeURIComponent(email)}`,
       };
     });
   };
@@ -101,9 +102,10 @@ export class AuthApiController extends BaseController {
     });
   };
 
+  /** Called by email ui router */
   verifySignin = (req: Request, res: Response, next: NextFunction): void => {
     this.handleRequest(req, res, next, async () => {
-      const { token } = req.params;
+      const token = req.query.token as string;
 
       const data = await this.authService.verifySignIn(token);
 
@@ -150,48 +152,24 @@ export class AuthApiController extends BaseController {
     this.handleRequest(req, res, next, async () => {
       const { email } = req.body;
 
-      await this.authService.forgotPassword(email);
-
-      const redirect =
-        typeof req.query.redirect === 'string' && req.query.redirect.startsWith('/')
-          ? req.query.redirect
-          : '/forgot-password';
+      await this.authService.initiateResetPassword(email);
 
       return {
         message: 'Password reset email sent',
-        successRedirect: redirect,
+        successRedirect: '/forgot-password',
       };
     });
   };
 
   resetPassword = (req: Request, res: Response, next: NextFunction): void => {
     this.handleRequest(req, res, next, async () => {
-      const { token, password } = req.body;
+      const { token, old_password, new_password } = req.body;
 
-      await this.authService.resetPassword(token, password);
+      await this.authService.resetPassword(token, old_password, new_password);
 
       return {
         message: 'Password reset successfully',
-        successRedirect: '/account',
-      };
-    });
-  };
-
-  manageMfa = (req: Request, res: Response, next: NextFunction): void => {
-    this.handleRequest(req, res, next, async () => {
-      const { action } = req.body;
-      const enable = action === 'enable';
-
-      await this.authService.manageMfa(req.user.id, enable);
-
-      const redirect =
-        typeof req.query.redirect === 'string' && req.query.redirect.startsWith('/')
-          ? req.query.redirect
-          : '/account';
-
-      return {
-        message: `Two-factor authentication ${enable ? 'enabled' : 'disabled'} successfully`,
-        successRedirect: redirect,
+        successRedirect: '/signin',
       };
     });
   };

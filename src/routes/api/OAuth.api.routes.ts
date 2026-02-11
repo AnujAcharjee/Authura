@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { oauthService } from '../../services/OAuth.service.js';
-import { userService } from '../../services/user.service.js';
+import { accountService } from '../../services/account.service.js';
 import { OAuthApiController } from '../../controllers/api/OAuth.api.controllers.js';
 import { OAuthZSchema } from '../../validators/OAuth.validator.js';
 import { validateRequest } from '../../middlewares/validateRequest.js';
@@ -9,7 +9,7 @@ import { ROLES } from '../../utils/constant.js';
 
 const router = Router();
 
-const controller = new OAuthApiController(oauthService, userService);
+const controller = new OAuthApiController(oauthService, accountService);
 
 // TODO: implement isolated router for every client
 
@@ -39,6 +39,22 @@ router
   )
   .get(Authentication.ssr, Authorize.role([ROLES.USER]), controller.getUserConsents);
 
-router.route('/user/:id').get(Authentication.client, controller.getUserInfo);
+router.route('/account/:id').get(Authentication.client, controller.getUserInfo);
+
+router.post(
+  '/consent/revoke',
+  Authentication.ssr,
+  Authorize.role([ROLES.USER]),
+  validateRequest(OAuthZSchema.updateConsentSchema),
+  controller.revokeConsent,
+);
+
+router.post(
+  '/consent/reissue',
+  Authentication.ssr,
+  Authorize.role([ROLES.USER]),
+  validateRequest(OAuthZSchema.updateConsentSchema),
+  controller.reissueConsent,
+);
 
 export default router;

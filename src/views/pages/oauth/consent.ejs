@@ -1,7 +1,7 @@
 <% layout('layouts/main') %>
 
 <%
-  const scopes = Array.isArray(scope) ? scope : [];
+  const _scopes = Array.isArray(scopes) ? scopes : [];
   const appName = clientName.toUpperCase();   
 %>
 
@@ -9,7 +9,7 @@
   <div class="w-full max-w-lg">
     <!-- Main Card -->
     <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/60 overflow-hidden">
-      
+
       <!-- Header -->
       <div class="bg-linear-to-r from-orange-500 to-orange-600 p-6 text-white">
         <div class="flex items-center gap-3 mb-3">
@@ -27,7 +27,7 @@
 
       <!-- Content -->
       <div class="p-6 space-y-6">
-        
+
         <div class="text-center">
           <p class="text-slate-600">
             <%= appName %> is requesting access to your account
@@ -53,21 +53,21 @@
             This application will be able to:
           </p>
 
-          <% if (scopes.length === 0) { %>
-            <div class="p-4 rounded-xl bg-sky-50 border border-sky-200">
-              <p class="text-sm text-sky-800">
-                No additional permissions requested
-              </p>
-            </div>
+          <% if (_scopes.length === 0) { %>
+          <div class="p-4 rounded-xl bg-sky-50 border border-sky-200">
+            <p class="text-sm text-sky-800">
+              No additional permissions requested
+            </p>
+          </div>
           <% } else { %>
-            <div class="space-y-2">
-              <% scopes.forEach(function (s) { %>
-                <div class="flex items-center gap-3 p-3 rounded-lg bg-linear-to-br from-slate-50 to-white border border-slate-200">
-                  <div class="w-2 h-2 rounded-full bg-sky-500"></div>
-                  <span class="text-sm text-slate-700"><%= s %></span>
-                </div>
-              <% }) %>
+          <div class="space-y-2">
+            <% _scopes.forEach(function (s) { %>
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-linear-to-br from-slate-50 to-white border border-slate-200">
+              <div class="w-2 h-2 rounded-full bg-sky-500"></div>
+              <span class="text-sm text-slate-700"><%= s %></span>
             </div>
+            <% }) %>
+          </div>
           <% } %>
         </div>
 
@@ -87,10 +87,10 @@
       </div>
 
       <!-- Actions -->
-      <form method="POST" action="/api/oauth/consent" class="p-6 bg-slate-50/50 border-t border-slate-200">
+      <form method="POST" action="/api/v1/oauth/consent" class="p-6 bg-slate-50/50 border-t border-slate-200">
         <input type="hidden" name="request_id" value="<%= requestId %>" />
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <%- include('../../partials/form/button', {
             type: 'submit',
             name: 'decision',

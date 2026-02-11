@@ -11,7 +11,7 @@ export class OAuthZSchema {
       state: z.string().optional(),
       nonce: z.string().optional(),
       code_challenge: z.string().min(43).optional(),
-      code_challenge_method: z
+      code_challenge_algo: z
         .enum(Object.values(CRYPTO_ALGORITHMS) as [CryptoAlgorithm, ...CryptoAlgorithm[]])
         .optional(),
     }),
@@ -20,6 +20,8 @@ export class OAuthZSchema {
   static authConsentSchema = z.object({
     body: z.object({
       request_id: z.uuid('request_id must be a valid UUID'),
+      redirect_uri: z.url('Invalid redirect_uri').optional(),
+      state: z.string().optional(),
       decision: z.enum(['approve', 'deny'], {
         message: 'decision must be "approve" or "deny"',
       }),
@@ -32,6 +34,12 @@ export class OAuthZSchema {
       code: z.string().min(1, 'authorization code is required'),
       client_id: z.string().min(1, 'client_id is required'),
       code_verifier: z.string().min(43).optional(),
+    }),
+  });
+
+  static updateConsentSchema = z.object({
+    body: z.object({
+      clientId: z.uuid('clientId must be a valid UUID'),
     }),
   });
 }

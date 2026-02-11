@@ -8,12 +8,12 @@
       : '/images/avatar-f-placeholder.png';
 %>
 
-<div class="max-w-7xl mx-auto py-8 space-y-8">
+<div class="max-w-7xl mx-auto py-6 sm:py-8 space-y-6 sm:space-y-8">
 
   <!-- Page Header -->
-  <div class="flex items-center justify-between">
+  <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <h1 class="text-3xl font-bold text-slate-900">Dashboard</h1>
+      <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">Dashboard</h1>
       <p class="text-slate-600 mt-1">Manage your account and applications</p>
     </div>
   </div>
@@ -22,7 +22,7 @@
 
   <!-- Profile Section -->
   <section class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-md border border-white/60 p-6 hover:shadow-lg transition-shadow">
-    <div class="flex items-start gap-6">
+    <div class="flex flex-col sm:flex-row items-start gap-6">
       <!-- Avatar -->
       <div class="relative">
         <img src="<%= _avatar %>" alt="<%= user.name %>" class="h-20 w-20 rounded-2xl object-cover ring-4 ring-orange-500/20" />
@@ -31,8 +31,8 @@
 
       <!-- User Info -->
       <div class="flex-1">
-        <div class="flex items-center gap-3 mb-2">
-          <h2 class="text-2xl font-bold text-slate-900"><%= user.name %></h2>
+        <div class="flex flex-wrap items-center gap-3 mb-2">
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-900 wrap-break-words"><%= user.name %></h2>
           <%- include("../../../partials/ui/badge", {
             variant: "success",
             text: "Verified",
@@ -65,8 +65,8 @@
 
     <div class="space-y-4">
       <!-- Password -->
-      <div class="flex items-center justify-between p-4 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200 hover:border-orange-300 transition-colors">
-        <div class="flex items-center gap-4">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between p-4 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200 hover:border-orange-300 transition-colors">
+        <div class="flex items-start sm:items-center gap-4">
           <div class="w-12 h-12 rounded-xl bg-linear-to-br from-orange-100 to-orange-200 flex items-center justify-center">
             <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
@@ -78,11 +78,11 @@
           </div>
         </div>
         <% if (success === 'Password reset email sent') { %>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
           <button type="button" disabled class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border-2 border-slate-300 text-slate-400 font-semibold cursor-not-allowed">
             Email sent
           </button>
-          <form method="POST" action="/api/auth/forgot-password?redirect=/account">
+          <form method="POST" action="/api/v1/account/change-password">
             <input type="hidden" name="email" value="<%= user.email %>" />
             <button type="submit" class="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-sky-500 text-sky-600 font-semibold hover:bg-sky-50 transition-colors">
               Resend
@@ -90,7 +90,7 @@
           </form>
         </div>
         <% } else { %>
-        <form method="POST" action="/api/auth/forgot-password?redirect=/account">
+        <form method="POST" action="/api/v1/account/change-password">
           <input type="hidden" name="email" value="<%= user.email %>" />
           <button type="submit" class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border-2 border-sky-500 text-sky-600 font-semibold hover:bg-sky-50 transition-colors">
             Reset
@@ -100,8 +100,8 @@
       </div>
 
       <!-- MFA -->
-      <div class="flex items-center justify-between p-4 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200 hover:border-orange-300 transition-colors">
-        <div class="flex items-center gap-4">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between p-4 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200 hover:border-orange-300 transition-colors">
+        <div class="flex items-start sm:items-center gap-4">
           <div class="w-12 h-12 rounded-xl bg-linear-to-br <%= user.mfaEnabled ? 'from-green-100 to-green-200' : 'from-sky-100 to-sky-200' %> <%= user.mfaEnabled ? '' : 'sky' %>-200 flex items-center justify-center">
             <svg class="w-6 h-6 <%= user.mfaEnabled ? 'text-green-600' : 'text-sky-600' %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -118,7 +118,7 @@
             </p>
           </div>
         </div>
-        <form method="POST" action="/api/auth/mfa?redirect=/account">
+        <form method="POST" action="/api/v1/account/mfa">
           <input type="hidden" name="action" value="<%= user.mfaEnabled ? 'disable' : 'enable' %>" />
           <%- include("../../../partials/form/button", {
             type: "submit",
@@ -147,20 +147,20 @@
       <svg class="w-12 h-12 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
-      <p class="text-slate-500 font-medium">No active OAuth consents</p>
+      <p class="text-slate-500 font-medium">No OAuth consents yet</p>
       <p class="text-sm text-slate-400 mt-1">Authorized applications will appear here</p>
     </div>
     <% } else { %>
     <div class="space-y-3">
       <% for (const consent of oauthConsents) { %>
       <div class="p-5 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200 hover:border-orange-300 transition-colors">
-        <div class="flex items-start justify-between gap-4">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div class="flex-1 space-y-2">
             <div class="flex items-center gap-2">
               <p class="font-semibold text-slate-900"><%= consent.client.domain %></p>
               <%- include("../../../partials/ui/badge", {
-                    variant: "info",
-                    text: "Active",
+                    variant: consent.revokedAt ? "danger" : "info",
+                    text: consent.revokedAt ? "Revoked" : "Active",
                     size: "sm"
                   }) %>
             </div>
@@ -171,19 +171,31 @@
               </span>
               <% }) %>
             </div>
+            <% if (consent.revokedAt) { %>
+            <p class="text-xs text-slate-500">
+              Revoked on <%= consent.revokedAt.toLocaleDateString() %>
+            </p>
+            <% } else { %>
             <p class="text-xs text-slate-500">
               Issued on <%= consent.date.toLocaleDateString() %>
             </p>
+            <% } %>
           </div>
-          <form method="POST" action="/oauth/revoke">
-            <input type="hidden" name="clientId" value="<%= consent.client.id %>" />
-            <%- include("../../../partials/form/button", {
-                  type: "submit",
-                  text: "Revoke",
-                  variant: "danger",
-                  size: "sm"
-                }) %>
-          </form>
+          <% if (consent.revokedAt) { %>
+          <a
+            href="/account/reissue-consent?clientId=<%= consent.client.id %>&clientDomain=<%= encodeURIComponent(consent.client.domain) %>"
+            class="inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 focus:outline-none focus:ring-4 px-3 py-1.5 text-xs rounded-md bg-white border-2 border-orange-500 text-orange-600 hover:bg-orange-50 focus:ring-orange-500/30"
+          >
+            Reissue
+          </a>
+          <% } else { %>
+          <a
+            href="/account/revoke-consent?clientId=<%= consent.client.id %>&clientDomain=<%= encodeURIComponent(consent.client.domain) %>"
+            class="inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 focus:outline-none focus:ring-4 px-3 py-1.5 text-xs rounded-md bg-linear-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 focus:ring-red-500/30 shadow-sm hover:shadow-md"
+          >
+            Revoke
+          </a>
+          <% } %>
         </div>
       </div>
       <% } %>
@@ -193,8 +205,8 @@
 
   <!-- Applications Section -->
   <section class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-md border border-white/60 p-6 hover:shadow-lg transition-shadow">
-    <div class="flex items-center justify-between mb-6">
-      <div class="flex items-center gap-3">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+      <div class="flex items-start sm:items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-linear-to-br from-orange-500 to-orange-600 flex items-center justify-center">
           <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
@@ -230,9 +242,9 @@
     <div class="space-y-3">
       <% for (const client of clients) { %>
       <div class="group p-5 rounded-xl bg-linear-to-br from-slate-50 to-white border border-slate-200 hover:border-orange-300 hover:shadow-md transition-all">
-        <div class="flex items-start justify-between gap-4">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div class="flex-1 space-y-3">
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-3">
               <h3 class="font-bold text-slate-900 text-lg"><%= client.name %></h3>
               <%- include("../../../partials/ui/badge", {
                     variant: client.isActive ? "success" : "default",
@@ -241,7 +253,7 @@
                   }) %>
             </div>
 
-            <div class="flex items-center gap-2">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2">
               <span class="text-sm font-medium text-slate-600">Client ID:</span>
               <div class="flex items-center gap-2 flex-1 min-w-0">
                 <code class="text-xs font-mono text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg flex-1 truncate">
@@ -256,7 +268,7 @@
             </div>
           </div>
 
-          <a href="/client/<%= client.id %>" class="inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 font-medium hover:border-sky-500 hover:text-sky-600 transition-colors opacity-0 group-hover:opacity-100">
+          <a href="/client/<%= client.id %>" class="inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 font-medium hover:border-sky-500 hover:text-sky-600 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
             View Details
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -284,7 +296,7 @@
     </div>
 
     <div class="space-y-3">
-      <form method="POST" action="/api/auth/signout">
+      <form method="POST" action="/auth/signout">
         <button type="submit" class="text-sm text-red-700 hover:text-red-900 font-medium hover:underline">
           Sign out from all devices
         </button>

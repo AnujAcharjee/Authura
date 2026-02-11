@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { OAUTH_CLIENT_TYPES, type OAuthClientType } from '../utils/constant.js';
+import {
+  OAUTH_CLIENT_TYPES,
+  OAUTH_CLIENT_ENVIRONMENTS,
+  type OAuthClientType,
+  type OAuthClientEnvironment,
+} from '../utils/constant.js';
 import { UtilFields } from './util.fields.js';
 
 export class ClientZSchema {
@@ -9,6 +14,14 @@ export class ClientZSchema {
       slug: z.string().min(1, 'Domain is required'),
       client_type: z
         .enum(Object.values(OAUTH_CLIENT_TYPES) as [OAuthClientType, ...OAuthClientType[]])
+        .optional(),
+      client_environment: z
+        .enum(
+          Object.values(OAUTH_CLIENT_ENVIRONMENTS) as [
+            OAuthClientEnvironment,
+            ...OAuthClientEnvironment[],
+          ],
+        )
         .optional(),
       redirect_uri: UtilFields.redirectUriField,
     }),
@@ -35,6 +48,20 @@ export class ClientZSchema {
   static rotateSecretSchema = z.object({
     body: z.object({
       client_id: UtilFields.clientIdField,
+    }),
+  });
+
+  static updateEnvironmentSchema = z.object({
+    params: z.object({
+      client_id: UtilFields.clientIdField,
+    }),
+    body: z.object({
+      environment: z.enum(
+        Object.values(OAUTH_CLIENT_ENVIRONMENTS) as [
+          OAuthClientEnvironment,
+          ...OAuthClientEnvironment[],
+        ],
+      ),
     }),
   });
 

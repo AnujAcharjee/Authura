@@ -17,7 +17,14 @@ const port = (name: string) =>
     message: `${name} must be between 1024 and 65535`,
   });
 
-const seconds = (name: string) => numberFromString(name);
+const seconds = (name: string) =>
+  numberFromString(name)
+    .refine((n) => Number.isInteger(n), {
+      message: `${name} must be an integer`,
+    })
+    .refine((n) => n > 0, {
+      message: `${name} must be greater than 0`,
+    });
 
 const url = (name: string) =>
   z.url({
@@ -27,14 +34,14 @@ const url = (name: string) =>
 const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'production', 'test'], {
-      error: 'NODE_ENV is required',
+      error: 'NODE_ENV is invalid or missing',
     }),
 
     PORT: port('PORT'),
 
     APP_NAME: isDev ? z.string().optional().default('Authura') : z.string(),
-
-    SERVER_URL: url('SERVER_URL'),
+    APP_DOMAIN: z.string({ error: 'APP_DOMAIN is required' }).min(1, 'APP_DOMAIN cannot be empty'),
+    APP_DOC_URL: url("APP_DOC_URL"),
 
     COOKIE_SECRET: z
       .string({ error: 'COOKIE_SECRET is required' })
@@ -51,8 +58,7 @@ const envSchema = z
     REDIS_PASSWORD:
       isDev ?
         z.string({ error: 'REDIS_PASSWORD is required' })
-      : z
-          .string({ error: 'REDIS_PASSWORD is required' }),
+      : z.string({ error: 'REDIS_PASSWORD is required' }),
 
     /* ---------------- SMTP ---------------- */
     SMTP_HOST: isDev ? z.string().optional() : z.string(),
@@ -90,9 +96,9 @@ const envSchema = z
 
     /* ---------------- OAuth ---------------- */
     AUTH_ISSUER: url('AUTH_ISSUER'),
-    AUTH_CODE_EX: z.string(),
+    AUTH_CODE_EX: seconds('AUTH_CODE_EX'),
     AUTH_TOKENS_EX: z.string(),
-    AUTH_REQUEST_EX: z.string(),
+    AUTH_REQUEST_EX: seconds('AUTH_REQUEST_EX'),
 
     KEY_ENC_SECRET: z.string().regex(/^[0-9a-f]{64}$/, {
       message: 'KEY_ENC_SECRET must be exactly 32 bytes (64 hex characters)',

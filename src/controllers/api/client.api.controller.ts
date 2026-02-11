@@ -1,18 +1,18 @@
 import { BaseController } from '../base.controller.js';
 import { AppError } from '../../utils/appError.js';
 import { ErrorCode } from '../../utils/errorCodes.js';
-import { ROLES } from '../../utils/constant.js';
+import { OAUTH_CLIENT_ENVIRONMENTS, OAUTH_CLIENT_TYPES, ROLES } from '../../utils/constant.js';
 import { ENV } from '../../config/env.js';
 import type { Request, Response, NextFunction } from 'express';
 import type { ClientService } from '../../services/client.service.js';
 import type { JoseService } from '../../services/jose.service.js';
-import type { UserService } from '../../services/user.service.js';
+import type { AccountService } from '../../services/account.service.js';
 
 export class ClientController extends BaseController {
   constructor(
     private clientService: ClientService,
     private joseService: JoseService,
-    private userService: UserService,
+    private accountService: AccountService,
   ) {
     super();
   }
@@ -21,7 +21,7 @@ export class ClientController extends BaseController {
 
   addClient = (req: Request, res: Response, next: NextFunction): void => {
     this.handleRequest(req, res, next, async () => {
-      const { name, slug, client_type, redirect_uri } = req.body;
+      const { name, slug, client_type, client_environment, redirect_uri } = req.body;
 
       if (!this.clientService.isValidSlug(slug)) {
         throw new AppError('Invalid domain', 400, ErrorCode.INVALID_DOMAIN);
@@ -34,7 +34,8 @@ export class ClientController extends BaseController {
         name,
         domain,
         redirectURI: redirect_uri,
-        clientType: client_type,
+        clientType: client_type || OAUTH_CLIENT_TYPES.CONFIDENTIAL,
+        environment: client_environment || OAUTH_CLIENT_ENVIRONMENTS.DEVELOPMENT,
       });
 
       /**
@@ -53,9 +54,8 @@ export class ClientController extends BaseController {
       // If user is creating first client assign developer role
       const roles = req.user.roles;
       if (!roles.includes(ROLES.DEVELOPER)) {
-        await this.userService.update(req.user.id, {
+        await this.accountService.update(req.user.id, {
           roles: [...roles, ROLES.DEVELOPER],
-          updatesAt: new Date(),
         });
       }
 
@@ -79,7 +79,10 @@ export class ClientController extends BaseController {
       }
 
       const client = await this.clientService.getClient(client_id);
-      const normalizedURI = this.clientService.normalizeAndValidateURI(redirect_uri);
+      const normalizedURI = this.clientService.normalizeAndValidateURI(
+        redirect_uri,
+        client.environment,
+      );
       const isExistingURI = client.redirectURIs.includes(normalizedURI);
 
       let data;
@@ -154,6 +157,22 @@ export class ClientController extends BaseController {
       return {
         data,
         message: 'Client secret rotated successfully',
+        successRedirect: `/client/${client_id}`,
+      };
+    });
+  };
+
+  // ---------------- UPDATE ENVIRONMENT ----------------
+
+  updateClientEnvironment = (req: Request, res: Response, next: NextFunction) => {
+    this.handleRequest(req, res, next, async () => {
+      const { client_id } = req.params;
+      const { environment } = req.body;
+
+      await this.clientService.setClientEnvironment(client_id, environment);
+
+      return {
+        message: `Client environment changed to ${environment}`,
         successRedirect: `/client/${client_id}`,
       };
     });

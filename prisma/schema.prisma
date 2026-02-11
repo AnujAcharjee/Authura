@@ -66,8 +66,9 @@ model OAuthClient {
   clientSecretHash String? @db.VarChar(255)
 
   // OAuth behavior
-  clientType  OAuthClientType @default(CONFIDENTIAL)
-  enforcePKCE Boolean         @default(true)
+  clientType   OAuthClientType        @default(CONFIDENTIAL)
+  environment  OAuthClientEnvironment @default(development)
+  enforcePKCE  Boolean                @default(true)
 
   // Redirect URIs
   redirectURIs String[]
@@ -149,6 +150,11 @@ enum AuthProvider {
 enum OAuthClientType {
   PUBLIC
   CONFIDENTIAL
+}
+
+enum OAuthClientEnvironment {
+  development
+  production
 }
 
 // Signing Keys 

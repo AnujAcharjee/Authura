@@ -12,8 +12,8 @@ export class AuthZSchema {
   });
 
   static verifyEmailSchema = z.object({
-    params: z.object({
-      token: UtilFields.tokenField('Verification link'),
+    query: z.object({
+      token: UtilFields.tokenField(),
     }),
   });
 
@@ -31,8 +31,8 @@ export class AuthZSchema {
   });
 
   static verifySignInSchema = z.object({
-    params: z.object({
-      token: UtilFields.tokenField('Verification link'),
+    query: z.object({
+      token: UtilFields.tokenField(),
     }),
   });
 
@@ -44,14 +44,13 @@ export class AuthZSchema {
 
   static resetPasswordSchema = z.object({
     body: z.object({
-      token: UtilFields.tokenField('Reset link'),
-      password: UtilFields.passwordField,
+      token: UtilFields.tokenField(),
+      old_password: UtilFields.passwordField,
+      new_password: UtilFields.passwordField,
+      confirm_new_password: UtilFields.passwordField,
     }),
-  });
-
-  static manageMfaSchema = z.object({
-    body: z.object({
-      action: z.enum(['enable', 'disable']),
-    }),
+  }).refine((data) => data.body.new_password === data.body.confirm_new_password, {
+    message: 'New password and confirm password must match',
+    path: ['body', 'confirm_new_password'],
   });
 }

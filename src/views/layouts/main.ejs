@@ -13,12 +13,12 @@
     <div class="absolute top-0 -right-32 w-96 h-96 bg-linear-to-br from-orange-200/40 to-orange-400/20 rounded-full blur-3xl animate-float"></div>
     <div class="absolute bottom-0 -left-32 w-96 h-96 bg-linear-to-tr from-sky-200/40 to-sky-400/20 rounded-full blur-3xl animate-float-delayed"></div>
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-linear-to-br from-orange-100/30 to-transparent rounded-full blur-3xl animate-pulse-slow"></div>
-    
+
     <!-- Grid Pattern -->
     <svg class="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
-          <path d="M 32 0 L 0 0 0 32" fill="none" stroke="currentColor" stroke-width="1"/>
+          <path d="M 32 0 L 0 0 0 32" fill="none" stroke="currentColor" stroke-width="1" />
         </pattern>
       </defs>
       <rect width="100%" height="100%" fill="url(#grid)" />
@@ -37,18 +37,39 @@
   <!-- Global Styles for Animations -->
   <style>
     @keyframes float {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-20px) rotate(5deg); }
+
+      0%,
+      100% {
+        transform: translateY(0px) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-20px) rotate(5deg);
+      }
     }
 
     @keyframes float-delayed {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-25px) rotate(-5deg); }
+
+      0%,
+      100% {
+        transform: translateY(0px) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-25px) rotate(-5deg);
+      }
     }
 
     @keyframes pulse-slow {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 0.5; }
+
+      0%,
+      100% {
+        opacity: 0.3;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
     }
 
     .animate-float {
@@ -85,59 +106,36 @@
 
   <!-- Global Scripts -->
   <script>
-    // Copy to clipboard functionality
-    async function copyToClipboard(text, buttonElement) {
+    window.copyToClipboard = async function(text, buttonElement) {
       try {
-        await navigator.clipboard.writeText(text);
-        showCopySuccess(buttonElement);
-      } catch {
-        // Fallback for older browsers
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        showCopySuccess(buttonElement);
-      }
-    }
-
-    function showCopySuccess(element) {
-      if (!element) return;
-      const originalHTML = element.innerHTML;
-      element.innerHTML = `
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-      `;
-      element.classList.add('text-green-600');
-      setTimeout(() => {
-        element.innerHTML = originalHTML;
-        element.classList.remove('text-green-600');
-      }, 2000);
-    }
-
-    // Client secret rotation
-    async function rotateSecret(clientId) {
-      if (!confirm('This will invalidate the current secret. Continue?')) return;
-      
-      try {
-        const response = await fetch(`/api/client/${clientId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        
-        if (response.ok) {
-          location.reload();
-        } else {
-          alert('Failed to rotate secret. Please try again.');
+        if (!navigator.clipboard) {
+          throw new Error("Clipboard API not supported");
         }
-      } catch (error) {
-        alert('An error occurred. Please try again.');
+
+        await navigator.clipboard.writeText(text);
+        window.showCopySuccess(buttonElement);
+
+      } catch (err) {
+        console.error("Clipboard failed:", err);
+
+        // Fallback
+        try {
+          const textarea = document.createElement("textarea");
+          textarea.value = text;
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textarea);
+
+          window.showCopySuccess(buttonElement);
+        } catch (fallbackErr) {
+          console.error("Fallback copy failed:", fallbackErr);
+        }
       }
-    }
+    };
+    
   </script>
 
 </body>

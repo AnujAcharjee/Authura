@@ -11,18 +11,27 @@ import { logger } from '../config/logger.js';
  *  - send JSON res
  */
 
-const AUTH_UI_REDIRECT_MAP: Record<string, string> = {
-  '/api/auth/signup': '/signup',
-  '/api/auth/signin': '/signin',
-  '/api/auth/reset-password': '/reset-password',
-  '/api/auth/forgot-password': '/forgot-password',
-  '/api/client': '/client',
+const UI_ERROR_REDIRECT_MAP: Record<string, string> = {
+  '/auth/signup': '/signup',
+  '/auth/signin': '/signin',
+  '/auth/forgot-password': '/forgot-password',
+  '/auth/reset-password': '/reset-password',
 };
 
 export const errorMiddleware: ErrorRequestHandler = (err, req, res, _next): void => {
   const isAppError = err instanceof AppError;
   const statusCode = isAppError ? err.statusCode : 500;
   const message = isAppError ? err.message : 'Internal server error';
+  const isApiRoute = req.path.startsWith('/api/');
+  const acceptsHtml = req.accepts(['html', 'json']) === 'html';
+  const secFetchMode = req.get('sec-fetch-mode');
+  const contentType = req.get('content-type') || '';
+  const isBrowserNavigate = secFetchMode === 'navigate';
+  const isFormSubmit =
+    req.method !== 'GET' &&
+    (contentType.includes('application/x-www-form-urlencoded') ||
+      contentType.includes('multipart/form-data'));
+  const shouldRedirectHtml = isApiRoute && acceptsHtml && isBrowserNavigate && isFormSubmit;
 
   // Logging
   if (!isAppError || statusCode >= 500) {
@@ -41,29 +50,36 @@ export const errorMiddleware: ErrorRequestHandler = (err, req, res, _next): void
     });
   }
 
-  const acceptsHtml = req.accepts(['html', 'json']) === 'html';
+  // Browser form submits from API endpoints: redirect to UI with error.
+  if (shouldRedirectHtml) {
+    // Exact match
+    if (UI_ERROR_REDIRECT_MAP[req.path]) {
+      return res.redirect(303, `${UI_ERROR_REDIRECT_MAP[req.path]}?error=${encodeURIComponent(message)}`);
+    }
 
-  // HTML response
+    // Prefix match
+    if (req.path.startsWith('/api/v1/account')) {
+      return res.redirect(303, `${'/account'}?error=${encodeURIComponent(message)}`);
+    }
+
+    if (req.path.startsWith('/api/v1/client')) {
+      const clientPathMatch = req.path.match(/^\/api\/v1\/client\/([^/]+)/);
+      if (clientPathMatch) {
+        const clientId = clientPathMatch[1];
+        return res.redirect(303, `/client/${encodeURIComponent(clientId)}?error=${encodeURIComponent(message)}`);
+      }
+
+      return res.redirect(303, `/account?error=${encodeURIComponent(message)}`);
+    }
+  }
+
+  // API response: always JSON unless the request matched redirect-safe form submit rules.
+  if (isApiRoute) {
+    return ApiResponse.error(res, message, statusCode);
+  }
+
+  // UI response
   if (acceptsHtml) {
-    const redirectParam =
-      typeof req.query.redirect === 'string' && req.query.redirect.startsWith('/')
-        ? req.query.redirect
-        : undefined;
-
-    if (redirectParam) {
-      return res.redirect(`${redirectParam}?error=${encodeURIComponent(message)}`);
-    }
-
-    if (req.path.startsWith('/api/auth/verify-email/')) {
-      return res.redirect(`/signup/verify?error=${encodeURIComponent(message)}`);
-    }
-
-    const redirectTarget = AUTH_UI_REDIRECT_MAP[req.path];
-
-    if (redirectTarget) {
-      return res.redirect(`${redirectTarget}?error=${encodeURIComponent(message)}`);
-    }
-
     return res.status(statusCode).render('pages/app/error', {
       title: 'Error · Authura',
       statusCode,
@@ -72,6 +88,6 @@ export const errorMiddleware: ErrorRequestHandler = (err, req, res, _next): void
     });
   }
 
-  // JSON response
+  // Fallback
   return ApiResponse.error(res, message, statusCode);
 };

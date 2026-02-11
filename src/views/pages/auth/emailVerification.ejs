@@ -19,7 +19,7 @@
           Didn't receive the email?
         </p>
 
-        <form method="GET" action="/api/auth/email-verification">
+        <form method="GET" action="/email/verify/resend">
           <input type="hidden" name="email" value="<%= typeof email === 'string' ? email : '' %>">
           <%- include("../../partials/form/button", {
             type: "submit",

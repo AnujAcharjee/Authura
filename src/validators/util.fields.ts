@@ -20,7 +20,7 @@ export class UtilFields {
     .max(99, 'Password must be less than 100 characters.')
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/, UtilFields.PASSWORD_MESSAGE);
 
-  static tokenField = (label = 'token') => z.string().min(1, `${label} is invalid or expired.`);
+  static tokenField = (label = 'token') => z.string().min(1, `Token is invalid or missing.`);
 
   static clientIdField = z.string().min(1, 'Client ID is required.');
 

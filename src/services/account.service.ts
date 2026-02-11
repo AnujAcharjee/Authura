@@ -1,20 +1,20 @@
 import prisma from '../config/database.js';
 import redis from '../config/redis.js';
+import { Prisma } from '../../generated/prisma/client.js';
 import { AppError } from '../utils/appError.js';
 import { ENV } from '../config/env.js';
 import { ErrorCode } from '../utils/errorCodes.js';
-import type { Role } from '../utils/constant.js';
+import type { Gender, Role } from '../utils/constant.js';
 
 interface ProfileUpdateInput {
   name?: string;
   avatar?: string;
   roles?: Role[];
   email?: string;
-  gender?: string;
-  updatesAt: Date;
+  gender?: Gender;
 }
 
-export type UserView = {
+export type AccountView = {
   id: string;
   name: string;
   avatar: string | null;
@@ -29,16 +29,16 @@ export type UserView = {
   updatedAt: Date;
 };
 
-export class UserService {
+export class AccountService {
   private readonly profileCacheEX = ENV.NODE_ENV == 'production' ? ENV.PROFILE_CACHE_EX : 15 * 60;
 
   private profileKey = (userId: string): string => `profile:${userId}`;
 
-  async get(userId: string): Promise<UserView> {
+  async get(userId: string): Promise<AccountView> {
     const cachedUser = await redis.get(this.profileKey(userId));
 
     if (cachedUser) {
-      return JSON.parse(cachedUser) as UserView;
+      return JSON.parse(cachedUser) as AccountView;
     }
 
     const user = await prisma.user.findUnique({
@@ -67,17 +67,21 @@ export class UserService {
     return user;
   }
 
-  async update(userId: string, updates: ProfileUpdateInput): Promise<UserView> {
+  async update(userId: string, updates: ProfileUpdateInput): Promise<AccountView> {
     if (Object.keys(updates).length === 0) {
       throw new AppError('No updates provided', 400, ErrorCode.INVALID_GRANT);
     }
 
-    const user = await prisma.user
-      .update({
+    let user: AccountView;
+    try {
+      user = await prisma.user.update({
         where: { id: userId },
         data: {
           ...(updates.name !== undefined && { name: updates.name }),
           ...(updates.avatar !== undefined && { avatar: updates.avatar }),
+          ...(updates.roles !== undefined && { roles: updates.roles }),
+          ...(updates.email !== undefined && { email: updates.email }),
+          ...(updates.gender !== undefined && { gender: updates.gender }),
         },
         select: {
           id: true,
@@ -93,16 +97,44 @@ export class UserService {
           createdAt: true,
           updatedAt: true,
         },
-      })
-      .catch(() => null);
+      });
+    } catch (error: unknown) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new AppError('Email already exists', 400, ErrorCode.ALREADY_EXISTS);
+      }
 
-    if (!user) {
-      throw new AppError('User not found', 404, ErrorCode.NOT_FOUND);
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new AppError('User not found', 404, ErrorCode.NOT_FOUND);
+      }
+
+      throw error;
     }
 
     // Invalidate cache
     await redis.del(this.profileKey(userId));
     return user;
+  }
+
+  // MANAGE MFA
+  async manageMfa(userId: string, enable: boolean): Promise<void> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, isActive: true },
+    });
+
+    if (!user || !user.isActive) {
+      throw new AppError('Account disabled', 403, ErrorCode.FORBIDDEN);
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        mfaEnabled: enable,
+        updatedAt: new Date(),
+      },
+    });
+
+    await redis.del(`profile:${userId}`);
   }
 
   async deactivate(userId: string): Promise<void> {
@@ -170,4 +202,4 @@ export class UserService {
   }
 }
 
-export const userService = new UserService();
+export const accountService = new AccountService();

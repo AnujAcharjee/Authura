@@ -17,7 +17,7 @@
           Check your email for the verification link to complete sign in.
         </div>
       <% } else { %>
-      <form method="POST" action="/api/auth/signin" class="space-y-5">
+      <form method="POST" action="/auth/signin" class="space-y-5">
 
         <%- include("../../partials/form/input", {
           id: "email",
@@ -39,7 +39,7 @@
           placeholder: "••••••••"
         }) %>
 
-        <div class="flex items-center justify-between text-sm">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm">
           <label class="flex items-center gap-2 cursor-pointer group">
             <input type="checkbox" class="w-4 h-4 text-orange-600 bg-white border-slate-300 rounded focus:ring-2 focus:ring-orange-500 focus:ring-offset-0 transition-all cursor-pointer">
             <span class="text-slate-600 group-hover:text-slate-900">Remember me</span>

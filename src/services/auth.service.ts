@@ -7,7 +7,14 @@ import { AppCrypto } from '../utils/crypto.js';
 import { emailService } from '../services/email.service.js';
 import { ENV } from '../config/env.js';
 import { sessionService } from '../services/session.service.js';
-import { ROLES, GENDERS, AUTH_PROVIDERS, CRYPTO_ALGORITHMS, type Role, type Gender } from '../utils/constant.js';
+import {
+  ROLES,
+  GENDERS,
+  AUTH_PROVIDERS,
+  CRYPTO_ALGORITHMS,
+  type Role,
+  type Gender,
+} from '../utils/constant.js';
 
 export class AuthService {
   private readonly emailVerificationTokenExpiry =
@@ -122,7 +129,8 @@ export class AuthService {
 
     // delete tokens
     const userKey = this.emailVerificationUserKey(userId);
-    await this.delVerificationTokenInRedis(token, userKey);
+    const tokenKey = this.emailVerificationTokenKey(hashedToken);
+    await this.delVerificationTokenInRedis(tokenKey, userKey);
 
     if (updated.count === 0) {
       throw new AppError('Email already verified', 400, ErrorCode.INVALID_TOKEN);
@@ -367,7 +375,7 @@ export class AuthService {
   // FORGOT PASSWORD
   // generates a token and send it via verified email
   // user get in to the reset password via that email link + token
-  async forgotPassword(email: string): Promise<void> {
+  async initiateResetPassword(email: string): Promise<void> {
     const user = await prisma.user.findUnique({
       where: { email },
       select: { id: true, name: true },
@@ -392,7 +400,7 @@ export class AuthService {
   }
 
   // RESET PASSWORD
-  async resetPassword(token: string, newPassword: string): Promise<void> {
+  async resetPassword(token: string, oldPassword: string, newPassword: string): Promise<void> {
     const hashedToken = AppCrypto.hash(token, CRYPTO_ALGORITHMS.sha256, 'hex');
     const userId = await redis.get(this.resetPasswordTokenKey(hashedToken));
 
@@ -406,6 +414,7 @@ export class AuthService {
         id: true,
         isActive: true,
         isLocked: true,
+        password: true,
       },
     });
 
@@ -415,6 +424,15 @@ export class AuthService {
 
     if (user.isLocked) {
       throw new AppError('Account locked', 423, ErrorCode.ACCOUNT_LOCKED);
+    }
+
+    if (!user.password) {
+      throw new AppError('Password reset is not supported for this account', 400, ErrorCode.INVALID_REQUEST);
+    }
+
+    const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
+    if (!isOldPasswordValid) {
+      throw new AppError('Old password is incorrect', 401, ErrorCode.INVALID_CREDENTIALS);
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -432,28 +450,6 @@ export class AuthService {
     ]);
 
     await redis.del(this.resetPasswordTokenKey(hashedToken));
-  }
-
-  // MANAGE MFA
-  async manageMfa(userId: string, enable: boolean): Promise<void> {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, isActive: true },
-    });
-
-    if (!user || !user.isActive) {
-      throw new AppError('Account disabled', 403, ErrorCode.FORBIDDEN);
-    }
-
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        mfaEnabled: enable,
-        updatedAt: new Date(),
-      },
-    });
-
-    await redis.del(`profile:${userId}`);
   }
 }
 

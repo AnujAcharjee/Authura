@@ -7,7 +7,7 @@
         OAuth 2.0 Flow
       </p>
 
-      <p class="mt-4 text-slate-600 leading-relaxed">
+      <p class="mt-4 text-sm sm:text-base text-slate-600 leading-relaxed">
         Authura uses the OAuth 2.0 Authorization Code flow with PKCE to securely
         authenticate users and issue tokens to your application. Users are redirected
         to Authura for login and consent, while your backend performs the token exchange.
@@ -21,66 +21,72 @@
 
       <!-- Step 1 -->
       <div class="relative rounded-3xl bg-slate-900 text-slate-100 p-6 shadow-xl flex flex-col">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
           <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">
             Step 1 · Redirect the user to Authura
           </span>
           <span class="text-xs text-orange-300">Browser</span>
         </div>
 
-        <pre class="flex-1 text-xs sm:text-sm font-mono leading-relaxed overflow-x-auto">
-          <code>
-            const authorizeUrl = new URL(
-              "https://authura.com/api/oauth/authorize"
-            );
+        <div class="flex-1 flex items-center justify-center">
+          <pre class="text-xs sm:text-sm font-mono leading-relaxed overflow-x-auto text-left w-full max-w-lg">
+            <code>
+              <span class="text-sky-400">const</span> authorizeUrl = <span class="text-emerald-400">new</span> URL(
+                <span class="text-amber-400">"<%= serverUrl %>/api/v1/oauth/authorize"</span>
+              );
 
-            authorizeUrl.search = new URLSearchParams({
-              client_id: process.env.AUTH_CLIENT_ID,
-              redirect_uri: "https://app.example.com/callback",
-              response_type: "code",
-              scope: "openid profile email",
-              state: csrfToken,
-              code_challenge: pkceChallenge,
-              code_challenge_method: "S256",
-            }).toString();
+              authorizeUrl.search = <span class="text-emerald-400">new</span> URLSearchParams({
+                <span class="text-purple-400">client_id</span>: process.env.AUTH_CLIENT_ID,
+                <span class="text-purple-400">redirect_uri</span>: <span class="text-amber-400">"https://yourdomain.com/callback"</span>,
+                <span class="text-purple-400">response_type</span>: <span class="text-amber-400">"code"</span>,
+                <span class="text-purple-400">scope</span>: <span class="text-amber-400">"openid profile email"</span>,
+                <span class="text-purple-400">state</span>: csrfToken,
+                <span class="text-purple-400">nonce</span>: randomValue,
+                <span class="text-purple-400">code_challenge</span>: pkceChallenge,
+                <span class="text-purple-400">code_challenge_algo</span>: <span class="text-amber-400">"S256"</span>,
+              }).toString();
 
-            res.redirect(authorizeUrl.toString());
-          </code>
-            </pre>
+              res.redirect(authorizeUrl.toString());
+            </code>
+          </pre>
+        </div>
       </div>
+
 
 
       <!-- Step 2 -->
       <div class="relative rounded-3xl bg-slate-900 text-slate-100 p-6 shadow-xl flex flex-col">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
           <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">
             Step 2 · Exchange the authorization code for tokens
           </span>
           <span class="text-xs text-emerald-300">Server</span>
         </div>
 
-        <pre class="flex-1 text-xs sm:text-sm font-mono leading-relaxed overflow-x-auto">
-          <code>
-            const response = await fetch(
-              "https://authura.com/api/oauth/token",
-              {
-                method: "POST",
-                headers: {
-                  "content-type": "application/x-www-form-urlencoded",
-                },
-                body: new URLSearchParams({
-                  grant_type: "authorization_code",
-                  client_id: process.env.AUTH_CLIENT_ID,
-                  redirect_uri: "https://app.example.com/callback",
-                  code,
-                  code_verifier: pkceVerifier,
-                }),
-              }
-            );
+        <div class="flex-1 flex items-center justify-center">
+          <pre class="text-xs sm:text-sm font-mono leading-relaxed overflow-x-auto text-left w-full max-w-lg">
+            <code>
+              <span class="text-sky-400">const</span> response = <span class="text-emerald-400">await</span> fetch(
+                <span class="text-amber-400">"<%= serverUrl %>/api/v1/oauth/token"</span>, {
+                  <span class="text-purple-400">method</span>: <span class="text-amber-400">"POST"</span>,
+                  <span class="text-purple-400">headers</span>: {
+                    <span class="text-amber-400">"content-type"</span>: <span class="text-amber-400">"application/x-www-form-urlencoded"</span>,
+                  },
+                  <span class="text-purple-400">body</span>: 
+                    <span class="text-emerald-400">new</span> URLSearchParams({
+                      <span class="text-purple-400">grant_type</span>: <span class="text-amber-400">"authorization_code"</span>,
+                      <span class="text-purple-400">client_id</span>: issued_client_id,
+                      <span class="text-purple-400">client_secret</span>: issued_client_secret,
+                      <span class="text-purple-400">code</span>, // authorizationCode,
+                      <span class="text-purple-400">code_verifier</span>: pkceVerifier,
+                    }),
+                }
+              );
 
-            const tokens = await response.json();
-          </code>
-        </pre>
+              <span class="text-sky-400">const</span> tokens = <span class="text-emerald-400">await</span> response.json();
+            </code>
+          </pre>
+        </div>
       </div>
 
 

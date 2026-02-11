@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { SERVER_URL } from '../utils/constant.js';
 import { ENV } from '../config/env.js';
 import { logger } from '../config/logger.js';
 import {
@@ -107,7 +108,7 @@ class EmailService {
   }
 
   async sendVerificationEmail(to: string, name: string, verificationToken: string): Promise<void> {
-    const verificationUrl = `${ENV.SERVER_URL}/api/auth/verify-email/${verificationToken}`;
+    const verificationUrl = `${SERVER_URL}/email/verify?token=${encodeURIComponent(verificationToken)}`;
 
     try {
       const info = await this.transporter.sendMail({
@@ -134,7 +135,7 @@ class EmailService {
   }
 
   async sendSignInVerifyEmail(to: string, name: string, verificationToken: string): Promise<void> {
-    const verificationUrl = `${ENV.SERVER_URL}/api/auth/verify-email/${verificationToken}`;
+    const verificationUrl = `${SERVER_URL}/email/signin?token=${encodeURIComponent(verificationToken)}`;
 
     try {
       const info = await this.transporter.sendMail({
@@ -161,7 +162,7 @@ class EmailService {
   }
 
   async sendPasswordResetEmail(to: string, name: string, resetToken: string): Promise<void> {
-    const resetUrl = `${ENV.SERVER_URL}/reset-password?token=${resetToken}`;
+    const resetUrl = `${SERVER_URL}/reset-password?token=${encodeURIComponent(resetToken)}`;
 
     try {
       const info = await this.transporter.sendMail({

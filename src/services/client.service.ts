@@ -4,13 +4,20 @@ import { ENV } from '../config/env.js';
 import { AppError } from '../utils/appError.js';
 import { ErrorCode } from '../utils/errorCodes.js';
 import { AppCrypto } from '../utils/crypto.js';
-import { OAUTH_CLIENT_TYPES, CRYPTO_ALGORITHMS, type OAuthClientType } from '../utils/constant.js';
+import {
+  OAUTH_CLIENT_TYPES,
+  OAUTH_CLIENT_ENVIRONMENTS,
+  CRYPTO_ALGORITHMS,
+  type OAuthClientType,
+  type OAuthClientEnvironment,
+} from '../utils/constant.js';
 
 export type ClientView = {
   id: string;
   name: string;
   domain: string;
   clientType: OAuthClientType;
+  environment: OAuthClientEnvironment;
   enforcePKCE: boolean;
   redirectURIs: string[];
   isActive: boolean;
@@ -28,12 +35,14 @@ export type AllClientsView = {
 export interface ClientUpdateInput {
   redirectURIs?: string[];
   clientSecretHash?: string;
+  environment?: OAuthClientEnvironment;
   isActive?: boolean;
-  revokedAt?: Date;
+  revokedAt?: Date | null;
 }
 
 export class ClientService {
-  private readonly clientCacheEX = ENV.NODE_ENV === 'production' ? ENV.CLIENT_CACHE_EX : 15 * 60;
+  private readonly appDomain = ENV.APP_DOMAIN;
+  private readonly clientCacheEX = ENV.CLIENT_CACHE_EX ?? 15 * 60;
   private readonly clientSecretKey = ENV.CLIENT_SECRET_KEY;
   private clientCacheKey = (clientId: string): string => `client:${clientId}`;
 
@@ -49,7 +58,7 @@ export class ClientService {
   }
 
   getClientDomain(slug: string): string {
-    return `https://${slug}.authura.com`;
+    return `https://${slug}.${this.appDomain}`;
   }
 
   isValidSlug(slug: string): boolean {
@@ -92,7 +101,7 @@ export class ClientService {
     return !reserved.has(normalized);
   }
 
-  normalizeAndValidateURI(uri: string): string {
+  normalizeAndValidateURI(uri: string, environment: OAuthClientEnvironment): string {
     let url: URL;
 
     try {
@@ -101,8 +110,21 @@ export class ClientService {
       throw new AppError('Invalid URI format', 400, ErrorCode.INVALID_REDIRECT_URI);
     }
 
-    if (ENV.NODE_ENV === 'production' && url.protocol !== 'https:' && url.hostname !== 'localhost') {
-      throw new AppError('URI must use HTTPS', 400, ErrorCode.INVALID_REDIRECT_URI);
+    const isHttps = url.protocol === 'https:';
+    const isHttp = url.protocol === 'http:';
+    const hostname = url.hostname.toLowerCase();
+    const isLocalHost =
+      hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname === '[::1]';
+
+    const isAllowedLocalDevHttp =
+      environment === OAUTH_CLIENT_ENVIRONMENTS.DEVELOPMENT && isHttp && isLocalHost;
+
+    if (!isHttps && !isAllowedLocalDevHttp) {
+      throw new AppError(
+        'Invalid redirect URI. Use HTTPS ( HTTP is only for localhost/127.0.0.1/::1 in development ).',
+        400,
+        ErrorCode.INVALID_REDIRECT_URI,
+      );
     }
 
     if (uri.includes('*')) {
@@ -128,18 +150,31 @@ export class ClientService {
       },
     });
 
-    if (!client || client.clientType !== OAUTH_CLIENT_TYPES.CONFIDENTIAL) {
+    if (!client || !client.isActive || client.revokedAt) {
       throw new AppError('Invalid client', 401, ErrorCode.INVALID_CLIENT);
     }
 
-    const derived = AppCrypto.hmac(
-      input.clientSecret,
-      this.clientSecretKey,
-      CRYPTO_ALGORITHMS.sha256,
-      'base64url',
-    );
-    const ok = AppCrypto.timingSafeCompare(derived, client.clientSecretHash!, 'hex');
-    if (!ok) {
+    if (client.clientType === OAUTH_CLIENT_TYPES.CONFIDENTIAL) {
+      if (!input.clientSecret || !client.clientSecretHash) {
+        throw new AppError('Invalid client', 401, ErrorCode.INVALID_CLIENT);
+      }
+
+      const derived = AppCrypto.hmac(
+        input.clientSecret,
+        this.clientSecretKey,
+        CRYPTO_ALGORITHMS.sha256,
+        'base64url',
+      );
+
+      const ok = AppCrypto.timingSafeCompare(derived, client.clientSecretHash, 'base64url');
+
+      if (!ok) {
+        throw new AppError('Invalid client', 401, ErrorCode.INVALID_CLIENT);
+      }
+    }
+
+    // PUBLIC clients must not authenticate with secret
+    if (client.clientType === OAUTH_CLIENT_TYPES.PUBLIC && input.clientSecret) {
       throw new AppError('Invalid client', 401, ErrorCode.INVALID_CLIENT);
     }
 
@@ -154,9 +189,28 @@ export class ClientService {
     name: string;
     domain: string;
     clientType: OAuthClientType;
+    environment: OAuthClientEnvironment;
     redirectURI: string; // enforce ONE at creation
   }) {
-    const redirectURI = this.normalizeAndValidateURI(input.redirectURI);
+    const normalizedName = input.name.trim().toLowerCase();
+    if (!normalizedName) {
+      throw new AppError('Client name is required', 400, ErrorCode.INVALID_INPUT);
+    }
+
+    const existingClients = await prisma.oAuthClient.findMany({
+      where: { userId: input.userId },
+      select: { name: true },
+    });
+
+    const hasDuplicateName = existingClients.some(
+      (client) => client.name.trim().toLowerCase() === normalizedName.toLowerCase(),
+    );
+
+    if (hasDuplicateName) {
+      throw new AppError('Client name already exists', 409, ErrorCode.ALREADY_EXISTS);
+    }
+
+    const redirectURI = this.normalizeAndValidateURI(input.redirectURI, input.environment);
 
     const { clientSecret, clientSecretHash } =
       input.clientType === OAUTH_CLIENT_TYPES.CONFIDENTIAL ?
@@ -166,9 +220,10 @@ export class ClientService {
     const client = await prisma.oAuthClient.create({
       data: {
         userId: input.userId,
-        name: input.name,
-        domain: input.domain,
+        name: normalizedName,
+        domain: input.domain.trim().toLowerCase(),
         clientType: input.clientType,
+        environment: input.environment,
         clientSecretHash,
         enforcePKCE: true,
         redirectURIs: [redirectURI],
@@ -198,6 +253,7 @@ export class ClientService {
         name: true,
         domain: true,
         clientType: true,
+        environment: true,
         enforcePKCE: true,
         redirectURIs: true,
         isActive: true,
@@ -226,6 +282,7 @@ export class ClientService {
       data: {
         ...(updates.redirectURIs !== undefined && { redirectURIs: updates.redirectURIs }),
         ...(updates.clientSecretHash !== undefined && { clientSecretHash: updates.clientSecretHash }),
+        ...(updates.environment !== undefined && { environment: updates.environment }),
         ...(updates.isActive !== undefined && { isActive: updates.isActive }),
         ...(updates.revokedAt !== undefined && { revokedAt: updates.revokedAt }),
       },
@@ -234,6 +291,7 @@ export class ClientService {
         name: true,
         domain: true,
         clientType: true,
+        environment: true,
         enforcePKCE: true,
         redirectURIs: true,
         isActive: true,
@@ -293,7 +351,7 @@ export class ClientService {
 
   // -------- ACTIVATE --------
   async activate(clientId: string) {
-    await this.update(clientId, { isActive: true, revokedAt: undefined });
+    await this.update(clientId, { isActive: true, revokedAt: null });
   }
 
   // ---------------- ROTATE SECRET ----------------
@@ -321,6 +379,10 @@ export class ClientService {
         createdAt: 'desc',
       },
     });
+  }
+
+  async setClientEnvironment(clientId: string, environment: OAuthClientEnvironment): Promise<ClientView> {
+    return this.update(clientId, { environment });
   }
 }
 

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { clientService } from '../../services/client.service.js';
 import { joseService } from '../../services/jose.service.js';
-import { userService } from '../../services/user.service.js';
+import { accountService } from '../../services/account.service.js';
 import { ClientController } from '../../controllers/api/client.api.controller.js';
 import { ClientZSchema } from '../../validators/client.validators.js';
 import { validateRequest } from '../../middlewares/validateRequest.js';
@@ -10,7 +10,7 @@ import { ROLES } from '../../utils/constant.js';
 
 const router = Router();
 
-const controller = new ClientController(clientService, joseService, userService);
+const controller = new ClientController(clientService, joseService, accountService);
 
 // TODO: implement isolated router for every client
 
@@ -62,6 +62,15 @@ router.post(
   Authorize.clientOwnership,
   validateRequest(ClientZSchema.manageRedirectsSchema),
   controller.manageRedirects,
+);
+
+router.post(
+  '/:client_id/environment',
+  Authentication.ssr,
+  Authorize.role([ROLES.USER, ROLES.DEVELOPER]),
+  Authorize.clientOwnership,
+  validateRequest(ClientZSchema.updateEnvironmentSchema),
+  controller.updateClientEnvironment,
 );
 
 router.post(

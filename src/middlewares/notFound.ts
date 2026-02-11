@@ -6,5 +6,14 @@ import { ApiResponse } from '../utils/apiResponse.js';
  * This should be mounted after all other routes
  */
 export const notFoundHandler = (req: Request, res: Response) => {
-  ApiResponse.error(res, '🔍 Oops! Looks like you are lost. 🗺️', 404);
-}; 
+  if (req.path.startsWith('/api/')) {
+    return ApiResponse.error(res, '🔍 Oops! Looks like you are lost. 🗺️', 404);
+  }
+
+  return res.status(404).render('pages/app/error', {
+    title: 'Error · Authura',
+    statusCode: 404,
+    message: 'Oops! Looks like you are lost. Page not found',
+    stack: undefined,
+  });
+};

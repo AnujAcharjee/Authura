@@ -1,3 +1,7 @@
+import { ENV } from '../config/env.js';
+
+export const SERVER_URL = `${ENV.NODE_ENV === 'production' ? 'https' : 'http'}://${ENV.APP_DOMAIN}`;
+
 /** User & Auth */
 
 export const ROLES = {
@@ -28,6 +32,13 @@ export const OAUTH_CLIENT_TYPES = {
   CONFIDENTIAL: 'CONFIDENTIAL',
 } as const;
 export type OAuthClientType = (typeof OAUTH_CLIENT_TYPES)[keyof typeof OAUTH_CLIENT_TYPES];
+
+export const OAUTH_CLIENT_ENVIRONMENTS = {
+  DEVELOPMENT: 'development',
+  PRODUCTION: 'production',
+} as const;
+export type OAuthClientEnvironment =
+  (typeof OAUTH_CLIENT_ENVIRONMENTS)[keyof typeof OAUTH_CLIENT_ENVIRONMENTS];
 
 export const SCOPES = {
   OPENID: 'openid',

@@ -9,7 +9,7 @@
         : 'Yes, Deactivate Application';
 %>
 
-<div class="max-w-3xl mx-auto py-12 space-y-8">
+<div class="max-w-3xl mx-auto py-8 sm:py-12 space-y-6 sm:space-y-8">
 
   <!-- Back -->
   <a href="/client/<%= clientId %>" class="inline-flex items-center text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors">
@@ -23,7 +23,7 @@
   <section class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-red-200 p-8">
 
     <!-- Header -->
-    <div class="flex items-center gap-4 mb-6">
+    <div class="flex items-start sm:items-center gap-4 mb-6">
       <div class="w-12 h-12 rounded-xl bg-linear-to-br from-red-500 to-red-600 flex items-center justify-center">
         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -71,7 +71,7 @@
     </div>
 
     <!-- Actions -->
-    <div class="flex items-center justify-end gap-4">
+    <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 sm:gap-4">
 
       <!-- Cancel -->
       <a href="/client/<%= clientId %>" class="px-4 py-2 text-sm font-semibold rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50">
@@ -79,7 +79,7 @@
       </a>
 
       <!-- Confirm -->
-      <form method="POST" action="/api/client/<%= clientId %><%= action === 'delete' ? '?_method=DELETE' : action === 'activate' ? '/activate' : '?_method=PUT' %>">
+      <form method="POST" action="/api/v1/client/<%= clientId %><%= action === 'delete' ? '?_method=DELETE' : action === 'activate' ? '/activate' : '?_method=PUT' %>">
         <%- include("../../../partials/form/button", {
           type: "submit",
           text: confirmText,

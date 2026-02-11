@@ -15,8 +15,8 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build \
-  && npm run prisma:generate \
+RUN npm run prisma:generate \
+  && npm run  build \
   && npm run css:build
 
 # Remove devDependencies

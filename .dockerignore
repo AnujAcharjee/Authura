@@ -44,7 +44,7 @@ eslint.config.*
 README.md
 doc
 
-# Dev-only Docker files (comment out in dev)
+# !! Dev-only Docker files (comment out in dev)
 Dockerfile.*
 docker-compose.*.yml
 nodemon.json

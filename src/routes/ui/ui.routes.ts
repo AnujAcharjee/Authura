@@ -2,13 +2,13 @@ import { Router } from 'express';
 import { PagesUiController } from '../../controllers/ui/pages.ui.controller.js';
 import { oauthService } from '../../services/OAuth.service.js';
 import { Authentication, Authorize } from '../../middlewares/authMiddleware.js';
-import { userService } from '../../services/user.service.js';
+import { accountService } from '../../services/account.service.js';
 import { clientService } from '../../services/client.service.js';
 import { ROLES } from '../../utils/constant.js';
 
 const router = Router();
 
-const pagesController = new PagesUiController(userService, clientService, oauthService);
+const pagesController = new PagesUiController(accountService, clientService, oauthService);
 
 // ------------------- Landing -------------------
 
@@ -18,11 +18,11 @@ router.get('/', pagesController.renderLandingPage);
 
 router.get('/signup', pagesController.renderSignupPage);
 router.get('/signup/verify', pagesController.renderEmailVerificationPage);
+
 router.get('/signin', pagesController.renderSigninPage);
+
 router.get('/forgot-password', pagesController.renderForgotPasswordPage);
 router.get('/reset-password', pagesController.renderResetPasswordPage);
-router.get('/reset-password/:token', pagesController.renderResetPasswordPage);
-router.get('/user/password', pagesController.renderForgotPasswordPage);
 
 // ------------------- OAuth -------------------
 
@@ -31,6 +31,13 @@ router.get(
   Authentication.ssr,
   Authorize.role([ROLES.USER]),
   pagesController.renderOAuthConsentPage,
+);
+
+router.get(
+  '/oauth/consent/:result',
+  Authentication.ssr,
+  Authorize.role([ROLES.USER]),
+  pagesController.renderOAuthConsentResultPage,
 );
 
 // ------------------- App -------------------

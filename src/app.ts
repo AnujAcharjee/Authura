@@ -10,13 +10,13 @@ import { notFoundHandler } from './middlewares/notFound.js';
 import { loggingMiddleware } from './middlewares/loggingMiddleware.js';
 import { setupSecurityHeaders } from './middlewares/securityHeaders.js';
 import { ensureRequestId } from './middlewares/requestId.js';
-import { authLimiter, apiLimiter } from './middlewares/rateLimiter.js';
+import { apiLimiter } from './middlewares/rateLimiter.js';
 import authRoutes from './routes/api/auth.api.routes.js';
 import oauthRoutes from './routes/api/OAuth.api.routes.js';
 import clientRoutes from './routes/api/client.api.routes.js';
-import userRoutes from './routes/api/user.api.routes.js';
+import userRoutes from './routes/api/account.api.routes.js';
+import emailRedirectRoutes from './routes/ui/emailRedirect.routes.js';
 import pagesRoutes from './routes/ui/ui.routes.js';
-
 
 const app = express();
 
@@ -28,7 +28,7 @@ app.set('views', path.join(process.cwd(), 'src', 'views'));
 // Trust the first proxy in front of the app (e.g. Nginx, Caddy, load balancer, Docker)
 // This is required so Express correctly reads the real client IP from
 // X-Forwarded-For headers, which is critical for rate limiting, logging, and security controls.
-app.set('trust proxy', true);
+app.set('trust proxy', 1);
 
 const setupMiddleware = (app: express.Application) => {
   // Security
@@ -46,8 +46,10 @@ const setupMiddleware = (app: express.Application) => {
   app.use(loggingMiddleware);
 
   // Rate Limiting
-  app.use('/api/auth', authLimiter);
-  app.use('/api', apiLimiter);
+  app.use('/api', (req, res, next) => {
+    if (req.path.startsWith('/auth')) return next();
+    return apiLimiter(req, res, next);
+  });
 };
 
 setupMiddleware(app);
@@ -64,12 +66,13 @@ app.get('/health', (_req: Request, res: Response) => {
 
 // Pages (ejs)
 app.use('/', pagesRoutes);
+app.use('/email', emailRedirectRoutes);
+app.use('/auth', authRoutes);
 
-// API (JSON)
-app.use('/api/auth', authRoutes);
-app.use('/api/oauth', oauthRoutes);
-app.use('/api/client', clientRoutes);
-app.use('/api/user', userRoutes);
+// API 
+app.use('/api/v1/oauth', oauthRoutes);
+app.use('/api/v1/client', clientRoutes);
+app.use('/api/v1/account', userRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
